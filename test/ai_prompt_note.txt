@@ -1,0 +1,20 @@
+add new feature follow my code base
+
+api route will be http://127.0.0.1:8000/api/example
+
+and api response will be
+
+{
+"success": true,
+"status": "Request was successful.",
+"message": "Referral Status for Auth User",
+"result": {
+"referral_status": false,
+"description": "You have already generated a referral code.",
+"target_count": 3,
+"count": 0,
+"finished_percentage": 0,
+"share_text": "UCL Big Event Referral To Join with Referral Progam \n Play Store - https://play.google.com/store/apps/details?id=com.bffsports.mobile&referrer=referrer_code%3DBFF-3JFEIGD \n Website - https://bffsports.com?referrer=BFF-3JFEIGD"
+}
+}
+
