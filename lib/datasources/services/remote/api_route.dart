@@ -54,4 +54,7 @@ class _Prediction {
   final String onGoingHistory = "/predictions/on-going-histories";
   final String finishedHistory = "/predictions/finished-histories";
   final String historyDetail = "/predictions/history";
+  final String handicapEstimateWinning =
+      "/predictions/handicap-estimated-winning";
+  final String handicapPrediction = "/predictions/handicap";
 }

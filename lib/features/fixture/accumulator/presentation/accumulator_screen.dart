@@ -100,6 +100,7 @@ class _AccumulatorScreenState extends ConsumerState<AccumulatorScreen> {
                     _accumulatorViewModel.onPrediction(context,
                         predictedCoin: value);
                   },
+                  onPreviewPrediction: () {},
                 )
               ],
             ),

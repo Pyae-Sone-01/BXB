@@ -1,5 +1,7 @@
+import 'dart:async';
 import 'package:bxb/services/fixture/models/league_fixture_model.dart';
 import 'package:bxb/services/fixture/models/league_model.dart';
+import 'package:bxb/services/prediction/models/estimate_fixture_item_model.dart';
 import 'package:bxb/utils/common/widgets/loading_widget.dart';
 import 'package:bxb/utils/common/widgets/txt_input_widget.dart';
 import 'package:bxb/utils/extension/num_extension.dart';
@@ -16,7 +18,8 @@ part '_widget/_reslult_dialog_widget.dart';
 part '_widget/_auto_close_result_dialog_widget.dart';
 part '_widget/_confrim_pin_dialog_widget.dart';
 part '_widget/_add_agent_code_dialog_widget.dart';
-part '_widget/_selected_prediction_dialog_widget.dart';
+part '_widget/_handicap_prediction_preview_dialog_widget.dart';
+part '_widget/_handicap_estimate_wining_dialog_widget.dart';
 
 class DialogManger {
   static void showLoading(BuildContext context) {
@@ -109,7 +112,7 @@ class DialogManger {
     );
   }
 
-  static showSelectedPredictionDialog(
+  static showHandicapPredictionPreviewDialog(
     BuildContext context, {
     required VoidCallback onConfirm,
     required List<FixtureModel> items,
@@ -120,12 +123,33 @@ class DialogManger {
     showDialog(
       context: context,
       barrierDismissible: false,
-      builder: (context) => _SelectedPredicitonDialogWidget(
+      builder: (context) => _HandicapPredicitonPreviewDialogWidget(
         items: items,
         prediction: prediction,
-        predictedCoin: predictedCoin,
-        estimateWinningCoin: estimateWinningCoin,
+        onClose: () {
+          closeDialog(context);
+        },
       ),
+    );
+  }
+
+  static showHandicapEstimateWiningCoin(
+    BuildContext context, {
+    required VoidCallback onConfirm,
+    required EstimateWiningFixtureItemModel data,
+  }) {
+    showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder: (context) => _HandicapEstimateWiningDialogWidget(
+          data: data,
+          onConfirm: () {
+            closeDialog(context);
+            onConfirm();
+          },
+          onClose: () {
+            closeDialog(context);
+          }),
     );
   }
 }

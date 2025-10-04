@@ -99,6 +99,9 @@ class _HandicapScreenState extends ConsumerState<HandicapScreen> {
                     _handicapViewModel.onPrediction(context,
                         predictedCoin: value);
                   },
+                  onPreviewPrediction: () {
+                    _handicapViewModel.showPreviewPrediction(context);
+                  },
                 ),
               ],
             ),

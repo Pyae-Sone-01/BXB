@@ -6,11 +6,13 @@ class MaxPayoutWidget extends StatefulWidget {
   final String remainingBalance;
   final int? predictionCount;
   final void Function(num) onPrediction;
+  final VoidCallback onPreviewPrediction;
   const MaxPayoutWidget({
     super.key,
     required this.remainingBalance,
     this.predictionCount,
     required this.onPrediction,
+    required this.onPreviewPrediction,
   });
 
   @override
@@ -76,19 +78,22 @@ class _MaxPayoutWidgetState extends State<MaxPayoutWidget> {
             const Gap(16),
             Row(
               children: [
-                Container(
-                  width: 40,
-                  height: 40,
-                  decoration: BoxDecoration(
-                    shape: BoxShape.circle,
-                    border: Border.all(
-                        color: AppResources.colors.blue600, width: 1.5),
-                  ),
-                  child: Center(
-                    child: widget.predictionCount != null
-                        ? Text(widget.predictionCount.toString())
-                        : Icon(Icons.remove_red_eye,
-                            color: AppResources.colors.blue600, size: 20),
+                GestureDetector(
+                  onTap: widget.onPreviewPrediction,
+                  child: Container(
+                    width: 40,
+                    height: 40,
+                    decoration: BoxDecoration(
+                      shape: BoxShape.circle,
+                      border: Border.all(
+                          color: AppResources.colors.blue600, width: 1.5),
+                    ),
+                    child: Center(
+                      child: widget.predictionCount != null
+                          ? Text(widget.predictionCount.toString())
+                          : Icon(Icons.remove_red_eye,
+                              color: AppResources.colors.blue600, size: 20),
+                    ),
                   ),
                 ),
                 const Gap(5),

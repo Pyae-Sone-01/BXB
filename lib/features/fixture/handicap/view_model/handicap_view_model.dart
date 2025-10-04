@@ -5,6 +5,8 @@ import 'package:bxb/services/fixture/models/league_fixture_model.dart';
 import 'package:bxb/services/fixture/models/league_model.dart';
 import 'package:bxb/services/fixture/models/prediction_fixture_model.dart';
 import 'package:bxb/services/fixture/providers/fixture_service_provider.dart';
+import 'package:bxb/services/prediction/prediction_service.dart';
+import 'package:bxb/services/prediction/providers/prediction_service_provider.dart';
 import 'package:bxb/utils/common/dialog_manager/dialog_manager.dart';
 import 'package:bxb/utils/helpers/functions.dart';
 import 'package:bxb/utils/helpers/polling_timer.dart';
@@ -18,6 +20,7 @@ abstract class HandicapViewModel {
   void leagueFilterApply(List<num> leagues);
   void selectPrediction({required PredictionFixtureModel prediction});
   void onPrediction(BuildContext context, {required num predictedCoin});
+  void showPreviewPrediction(BuildContext context);
 }
 
 class HandicapState {
@@ -62,6 +65,8 @@ class HandicapViewModelImpl extends _$HandicapViewModelImpl
   late final FixtureService _fixtureService;
   late final CoinService _coinService;
   late final PollingTimer _pollingTimer;
+  late final PredictionService _predictionService =
+      ref.read(predictionServiceProvider);
   @override
   HandicapState build() {
     _fixtureService = ref.read(fixtureServiceProvider);
@@ -142,27 +147,76 @@ class HandicapViewModelImpl extends _$HandicapViewModelImpl
           isSuccess: false,
           description: "အနည်းဆုံး ၁၀၀၀ ကျပ် လောင်းရန် လိုအပ်ပါသည်");
     } else {
-      final selectedFixture = state.fixtures
-          .expand((leagueFixturesList) => leagueFixturesList)
-          .expand((leagueFixturesModel) =>
-              leagueFixturesModel.fixtures ?? <FixtureModel>[])
-          .firstWhere(
-            (fixture) =>
-                fixture.id == state.prediction?.fixtureId &&
-                fixture.oddId == state.prediction?.handicapOddId,
-            orElse: () =>
-                FixtureModel(), // Provide a default instance or handle differently
-          );
-
-      // Use the selectedFixture if needed, or just show the dialog
-      // DialogManger.showSelectedPredictionDialog(
-      //   context,
-      //   onConfirm: () {},
-      //   items: [selectedFixture],
-      //   prediction: [state.prediction!],
-      //   predictedCoin: 0,
-      //   estimateWinningCoin: 0,
-      // );
+      _getEstimateWining(context, predictedCoin: predictedCoin);
     }
+  }
+
+  _getEstimateWining(BuildContext context, {required num predictedCoin}) async {
+    final prediction = state.prediction;
+    DialogManger.showLoading(context);
+    final res = await _predictionService.getHandicapEstimateWining({
+      "fixture_id": prediction?.fixtureId,
+      "handicap_odd_id": prediction?.handicapOddId,
+      "prediction_type": prediction?.predictionType,
+      "predicted_side": prediction?.predictedSide,
+      "predicted_coin": predictedCoin
+    });
+    DialogManger.closeDialog(context);
+    if (res.isSuccess) {
+      DialogManger.showHandicapEstimateWiningCoin(context, onConfirm: () {
+        _confirmPrediction(context, predictedCoin: predictedCoin);
+      }, data: res.data!);
+    }
+  }
+
+  _confirmPrediction(BuildContext context, {required num predictedCoin}) async {
+    state = state.copyWith(isLoading: true);
+
+    final res = await _predictionService.handicapPrediction({
+      "fixture_id": state.prediction?.fixtureId,
+      "handicap_odd_id": state.prediction?.handicapOddId,
+      "prediction_type": state.prediction?.predictionType,
+      "predicted_side": state.prediction?.predictedSide,
+      "predicted_coin": predictedCoin
+    });
+    state = HandicapState(
+      fixtures: state.fixtures,
+      leagueIds: state.leagueIds,
+      leauges: state.leauges,
+      isLoading: false,
+    );
+
+    DialogManger.showAutoCloseResultDialog(context,
+        isSuccess: res.isSuccess,
+        description: res.isSuccess ? res.msg ?? "" : res.error ?? "");
+  }
+
+  @override
+  void showPreviewPrediction(BuildContext context) {
+    if (state.prediction == null) {
+      DialogManger.showAutoCloseResultDialog(context,
+          isSuccess: false, description: "ပွဲတစ်ပွဲကို အရင်ရွေးချယ်ပါ");
+      return;
+    }
+    final selectedFixture = state.fixtures
+        .expand((leagueFixturesList) => leagueFixturesList)
+        .expand((leagueFixturesModel) =>
+            leagueFixturesModel.fixtures ?? <FixtureModel>[])
+        .firstWhere(
+          (fixture) =>
+              fixture.id == state.prediction?.fixtureId &&
+              fixture.oddId == state.prediction?.handicapOddId,
+          orElse: () =>
+              FixtureModel(), // Provide a default instance or handle differently
+        );
+
+    DialogManger.showHandicapPredictionPreviewDialog(
+      context,
+      onConfirm: () {},
+      items: [selectedFixture],
+      prediction: [state.prediction!],
+      predictedCoin: null,
+      estimateWinningCoin: null,
+    );
   }
 }

@@ -1,16 +1,18 @@
 part of '../dialog_manager.dart';
 
-class _SelectedPredicitonDialogWidget extends StatelessWidget {
+class _HandicapPredicitonPreviewDialogWidget extends StatelessWidget {
   final List<FixtureModel> items;
   final List<PredictionFixtureModel> prediction;
-  final num? predictedCoin;
-  final num? estimateWinningCoin;
-  const _SelectedPredicitonDialogWidget(
-      {super.key,
-      required this.items,
-      required this.prediction,
-      required this.predictedCoin,
-      required this.estimateWinningCoin});
+  final VoidCallback onClose;
+
+  const _HandicapPredicitonPreviewDialogWidget(
+      {required this.items, required this.prediction, required this.onClose});
+  _closeDialog(BuildContext context) {
+    Future.delayed(const Duration(milliseconds: 1), () {
+      FocusManager.instance.primaryFocus?.unfocus();
+    });
+    Navigator.of(context).pop();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -19,7 +21,7 @@ class _SelectedPredicitonDialogWidget extends StatelessWidget {
       child: Container(
           color: Colors.white,
           padding: const EdgeInsets.all(16),
-          height: 330,
+          height: 280,
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
@@ -30,7 +32,7 @@ class _SelectedPredicitonDialogWidget extends StatelessWidget {
               const Gap(10),
               ListView.builder(
                 shrinkWrap: true,
-                physics: NeverScrollableScrollPhysics(),
+                physics: const NeverScrollableScrollPhysics(),
                 itemCount: items.length,
                 itemBuilder: (context, index) {
                   final item = items[index];
@@ -40,67 +42,19 @@ class _SelectedPredicitonDialogWidget extends StatelessWidget {
                       prediction: prediction);
                 },
               ),
-              Spacer(),
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  Text(
-                    "လောင်းငွေ",
-                    style: TextStyle(color: Colors.grey),
-                  ),
-                  Text(
-                    "လောင်းငွေ",
-                    style: TextStyle(fontWeight: FontWeight.bold),
-                  )
-                ],
+              const Spacer(),
+              ElevatedButton(
+                style: ElevatedButton.styleFrom(
+                  shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(8)),
+                ),
+                onPressed: () {
+                  _closeDialog(context);
+                },
+                child: const Text(
+                  'close',
+                ),
               ),
-              Gap(10),
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  Text(
-                    "ခန့်မှန်းနိုင်ငွေ",
-                    style: TextStyle(color: Colors.grey),
-                  ),
-                  Text(
-                    "လောင်းငွေ",
-                    style: TextStyle(fontWeight: FontWeight.bold),
-                  )
-                ],
-              ),
-              Gap(10),
-              (estimateWinningCoin != null && predictedCoin != null)
-                  ? Row(
-                      children: [
-                        Expanded(
-                          child: OutlinedButton(
-                            style: OutlinedButton.styleFrom(
-                              side: const BorderSide(color: Color(0xFF484C54)),
-                              shape: RoundedRectangleBorder(
-                                  borderRadius: BorderRadius.circular(8)),
-                            ),
-                            onPressed: () => Navigator.of(context).pop(),
-                            child: const Text(
-                              'ပြင်မည်',
-                            ),
-                          ),
-                        ),
-                        const SizedBox(width: 16),
-                        Expanded(
-                          child: ElevatedButton(
-                            style: ElevatedButton.styleFrom(
-                              shape: RoundedRectangleBorder(
-                                  borderRadius: BorderRadius.circular(8)),
-                            ),
-                            onPressed: () {},
-                            child: const Text(
-                              'လောင်းမည်',
-                            ),
-                          ),
-                        ),
-                      ],
-                    )
-                  : Container()
             ],
           )),
     );
@@ -156,7 +110,7 @@ class _FixtureRow extends StatelessWidget {
                 style:
                     const TextStyle(fontWeight: FontWeight.w500, fontSize: 13),
               ),
-              Icon(Icons.close)
+              // Icon(Icons.close)
             ],
           ),
           const Gap(10),
@@ -201,7 +155,8 @@ class _FixtureRow extends StatelessWidget {
                               ),
                             ),
                           ),
-                          if (data.isHomeTeamUpper ?? false) ...[
+                          if (matchedPrediction.predictionType == "body" &&
+                              (data.isHomeTeamUpper ?? false)) ...[
                             const Gap(5),
                             Text(
                               " (${data.bodyHandicap?.withSignPrefix(withoutPlusSign: true, withoutSpace: true)}${data.bodyHandicapPrice?.withSignPrefix(withoutSpace: true)})",
@@ -257,7 +212,8 @@ class _FixtureRow extends StatelessWidget {
                                       : AppResources.colors.blue600,
                             ),
                           )),
-                          if (!(data.isHomeTeamUpper ?? false)) ...[
+                          if (matchedPrediction.predictionType == "body" &&
+                              !(data.isHomeTeamUpper ?? false)) ...[
                             const Gap(5),
                             Text(
                               "(${data.bodyHandicap?.withSignPrefix(withoutPlusSign: true, withoutSpace: true)}${data.bodyHandicapPrice?.withSignPrefix(withoutSpace: true)})",
@@ -308,20 +264,22 @@ class _FixtureRow extends StatelessWidget {
                 ),
               ),
               const Gap(5),
-              Expanded(
-                flex: 1,
-                child: _buildDecorator(
-                  onTap: () {},
-                  backgroundColor: AppResources.colors.blue600,
-                  child: Text(
-                    "${data.goalTotalHandicap?.withSignPrefix(withoutPlusSign: true)}${data.goalTotalHandicapPrice?.withSignPrefix()}",
-                    style: const TextStyle(
-                        fontSize: 12,
-                        fontWeight: FontWeight.w600,
-                        color: Colors.white),
+              if (matchedPrediction.predictionType == "goal_total") ...[
+                Expanded(
+                  flex: 1,
+                  child: _buildDecorator(
+                    onTap: () {},
+                    backgroundColor: AppResources.colors.blue600,
+                    child: Text(
+                      "${data.goalTotalHandicap?.withSignPrefix(withoutPlusSign: true)}${data.goalTotalHandicapPrice?.withSignPrefix()}",
+                      style: const TextStyle(
+                          fontSize: 12,
+                          fontWeight: FontWeight.w600,
+                          color: Colors.white),
+                    ),
                   ),
                 ),
-              ),
+              ],
               const Gap(5),
               Expanded(
                 flex: 2,

@@ -14,12 +14,43 @@ class _AutoCloseResultDialog extends StatefulWidget {
 }
 
 class _AutoCloseResultDialogState extends State<_AutoCloseResultDialog> {
+  Timer? _countdownTimer;
+  bool _canUserClose = true;
+
   @override
   void initState() {
     super.initState();
-    Future.delayed(const Duration(seconds: 2), () {
-      _closeDialog();
+
+    // Start countdown timer
+    _countdownTimer =
+        Timer.periodic(const Duration(milliseconds: 100), (timer) {
+      if (!mounted) {
+        timer.cancel();
+        return;
+      }
+
+      final elapsed = timer.tick * 100; // milliseconds elapsed
+      final remaining = 2000 - elapsed; // total 2 seconds
+
+      // Prevent user close in the last 500ms
+      final shouldPreventClose = remaining <= 500 && remaining > 0;
+      if (_canUserClose == shouldPreventClose) {
+        setState(() {
+          _canUserClose = !shouldPreventClose;
+        });
+      }
+
+      if (remaining <= 0) {
+        timer.cancel();
+        _closeDialog();
+      }
     });
+  }
+
+  @override
+  void dispose() {
+    _countdownTimer?.cancel();
+    super.dispose();
   }
 
   _closeDialog() {
@@ -28,6 +59,12 @@ class _AutoCloseResultDialogState extends State<_AutoCloseResultDialog> {
         FocusManager.instance.primaryFocus?.unfocus();
       });
       Navigator.of(context).pop();
+    }
+  }
+
+  void _onClosePressed() {
+    if (_canUserClose) {
+      _closeDialog();
     }
   }
 
@@ -73,7 +110,9 @@ class _AutoCloseResultDialogState extends State<_AutoCloseResultDialog> {
             top: 10,
             right: 10,
             child: GestureDetector(
-                onTap: _closeDialog, child: const Icon(Icons.close)),
+              onTap: _canUserClose ? _onClosePressed : null,
+              child: const Icon(Icons.close),
+            ),
           ),
         ],
       ),
