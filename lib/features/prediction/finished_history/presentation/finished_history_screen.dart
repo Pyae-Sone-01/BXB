@@ -1,6 +1,7 @@
 import 'package:bxb/features/prediction/finished_history/view_model/finsished_history_view_model.dart';
 import 'package:bxb/router/router.dart';
 import 'package:bxb/services/prediction/models/history_model.dart';
+import 'package:bxb/utils/common/dialog_manager/dialog_manager.dart';
 import 'package:bxb/utils/common/widgets/custom_image_widget.dart';
 import 'package:bxb/utils/common/widgets/loading_widget.dart';
 import 'package:bxb/utils/extension/num_extension.dart';
@@ -58,6 +59,20 @@ class _FinishedHistoryScreenState extends ConsumerState<FinishedHistoryScreen> {
       appBar: AppBar(
         title: const Text('လောင်းပြီးသောပွဲများ'),
         centerTitle: false,
+        actions: [
+          IconButton(
+              onPressed: () {
+                DialogManger.showFinisedPredictFilterDialog(
+                  context,
+                  onApply: (startDate, endDate) {
+                    ref
+                        .read(finishedHistoryViewModelProvider.notifier)
+                        .setDateFilter(startDate: startDate, endDate: endDate);
+                  },
+                );
+              },
+              icon: Icon(Icons.calendar_month))
+        ],
       ),
       body: RefreshIndicator.adaptive(
         onRefresh: () async {
@@ -65,26 +80,40 @@ class _FinishedHistoryScreenState extends ConsumerState<FinishedHistoryScreen> {
         },
         child: isLoading
             ? const LoadingWidget()
-            : Column(
-                children: [
-                  Expanded(
-                    child: ListView.builder(
-                      padding: const EdgeInsets.all(15),
-                      controller: _scrollController,
-                      itemCount: histories.length,
-                      itemBuilder: (context, index) {
-                        return _HistoryItemWidget(
-                          data: histories[index],
-                        );
-                      },
+            : histories.isEmpty
+                ? Center(
+                    child: Column(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      crossAxisAlignment: CrossAxisAlignment.center,
+                      children: [
+                        CustomImageWidget(
+                          AppResources.assets.images.clockBox,
+                          width: 200,
+                        ),
+                        Text("လောင်းပြီးသော ပွဲများ မရှိပါ")
+                      ],
                     ),
+                  )
+                : Column(
+                    children: [
+                      Expanded(
+                        child: ListView.builder(
+                          padding: const EdgeInsets.all(15),
+                          controller: _scrollController,
+                          itemCount: histories.length,
+                          itemBuilder: (context, index) {
+                            return _HistoryItemWidget(
+                              data: histories[index],
+                            );
+                          },
+                        ),
+                      ),
+                      if (isLoadmore)
+                        const Center(
+                          child: CircularProgressIndicator.adaptive(),
+                        )
+                    ],
                   ),
-                  if (isLoadmore)
-                    const Center(
-                      child: CircularProgressIndicator.adaptive(),
-                    )
-                ],
-              ),
       ),
     );
   }

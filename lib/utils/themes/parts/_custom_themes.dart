@@ -15,7 +15,7 @@ class _CustomTheme {
       elevation: 1,
       shadowColor: Colors.black.withOpacity(0.5),
       centerTitle: true,
-      titleTextStyle: AppResources.fonts.heading4
+      titleTextStyle: AppResources.fonts.heading6
           .copyWith(color: AppResources.colors.white),
     ),
     buttonTheme: const ButtonThemeData(

@@ -10,6 +10,8 @@ class FinishedHistoryState {
   final bool hasMoreData;
   final int page;
   final List<HistoryModel> histories;
+  final String? startDate;
+  final String? endDate;
 
   FinishedHistoryState({
     this.isLoading = false,
@@ -17,6 +19,8 @@ class FinishedHistoryState {
     this.hasMoreData = true,
     this.page = 1,
     this.histories = const [],
+    this.startDate,
+    this.endDate,
   });
 
   FinishedHistoryState copyWith({
@@ -25,6 +29,8 @@ class FinishedHistoryState {
     bool? hasMoreData,
     int? page,
     List<HistoryModel>? histories,
+    String? startDate,
+    String? endDate,
   }) {
     return FinishedHistoryState(
       isLoading: isLoading ?? this.isLoading,
@@ -32,6 +38,8 @@ class FinishedHistoryState {
       page: page ?? this.page,
       histories: histories ?? this.histories,
       hasMoreData: hasMoreData ?? this.hasMoreData,
+      startDate: startDate ?? this.startDate,
+      endDate: endDate ?? this.endDate,
     );
   }
 }
@@ -50,6 +58,11 @@ class FinishedHistoryViewModel extends _$FinishedHistoryViewModel {
     _getHistories();
   }
 
+  setDateFilter({required String startDate, required String endDate}) {
+    state = state.copyWith(startDate: startDate, endDate: endDate);
+    _getHistories();
+  }
+
   void onRefresh() {
     state = state.copyWith(hasMoreData: true);
     _getHistories();
@@ -60,6 +73,8 @@ class FinishedHistoryViewModel extends _$FinishedHistoryViewModel {
     state = state.copyWith(isLoadmore: true, page: state.page + 1);
     final res = await _predictionService.getFinishedHistories({
       'page': state.page,
+      "startDate": state.startDate,
+      "endDate": state.endDate
     });
     state = state.copyWith(isLoadmore: false);
     if (res.isSuccess) {
@@ -72,9 +87,8 @@ class FinishedHistoryViewModel extends _$FinishedHistoryViewModel {
 
   Future<void> _getHistories() async {
     state = state.copyWith(isLoading: true);
-    final res = await _predictionService.getFinishedHistories({
-      'page': 1,
-    });
+    final res = await _predictionService.getFinishedHistories(
+        {'page': 1, "startDate": state.startDate, "endDate": state.endDate});
     state = state.copyWith(isLoading: false);
     if (res.isSuccess && res.data != null) {
       state = state.copyWith(

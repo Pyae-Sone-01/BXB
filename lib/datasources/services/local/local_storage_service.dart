@@ -2,6 +2,8 @@ import 'package:shared_preferences/shared_preferences.dart';
 
 class LocalStorageKey {
   static String token = "token";
+  static String isNotFirstTimeUser = "is_not_first_time_user";
+  static String language = "mm";
 }
 
 class LocalStorageServices {

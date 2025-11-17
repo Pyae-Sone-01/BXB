@@ -7,7 +7,7 @@ part of 'splash_view_model.dart';
 // **************************************************************************
 
 String _$splashViewModelImplHash() =>
-    r'f8072be019b5f2b4c86915bf616f553145cfea16';
+    r'7ae5975febdd8a3f9509e6f2aaaa2f69ffe12cb5';
 
 /// See also [SplashViewModelImpl].
 @ProviderFor(SplashViewModelImpl)

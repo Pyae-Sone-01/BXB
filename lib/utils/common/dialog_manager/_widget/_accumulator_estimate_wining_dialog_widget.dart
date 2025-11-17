@@ -1,0 +1,554 @@
+part of '../dialog_manager.dart';
+
+class _AccumulatorEstimateWiningDialogWidget extends ConsumerStatefulWidget {
+  final AccumulatorEstimateWinningResModel initialData;
+  final VoidCallback onClose;
+  final VoidCallback onConfirm;
+  final Function(int id) onDeletePrediction;
+  final List<PredictionFixtureModel> predictions;
+  final num predictedCoin;
+
+  const _AccumulatorEstimateWiningDialogWidget({
+    required this.initialData,
+    required this.onClose,
+    required this.onConfirm,
+    required this.onDeletePrediction,
+    required this.predictions,
+    required this.predictedCoin, // Add this
+  });
+
+  @override
+  ConsumerState<_AccumulatorEstimateWiningDialogWidget> createState() =>
+      _AccumulatorEstimateWiningDialogWidgetState();
+}
+
+class _AccumulatorEstimateWiningDialogWidgetState
+    extends ConsumerState<_AccumulatorEstimateWiningDialogWidget> {
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      ref
+          .read(accumulatorEstimateDialogViewModelProvider.notifier)
+          .initializeWithData(
+            data: widget.initialData,
+            predictedCoin: widget.predictedCoin,
+            predictions: widget.predictions,
+          );
+    });
+  }
+
+  void _onDeletePrediction(int id) async {
+    widget.onDeletePrediction(id);
+
+    final updatedPredictions =
+        widget.predictions.where((p) => p.fixtureId != id).toList();
+
+    if (updatedPredictions.isEmpty) {
+      widget.onClose();
+      return;
+    }
+
+    await ref
+        .read(accumulatorEstimateDialogViewModelProvider.notifier)
+        .refreshEstimate(
+          predictions: updatedPredictions,
+        );
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final estimateData = ref.watch(
+        accumulatorEstimateDialogViewModelProvider.select((s) => s.data));
+    final isRefreshing = ref.watch(accumulatorEstimateDialogViewModelProvider
+        .select((s) => s.isRefreshing));
+    final currentItems = estimateData?.items ?? [];
+
+    return Dialog(
+      insetPadding: const EdgeInsets.all(12),
+      child: Container(
+        color: Colors.white,
+        padding: const EdgeInsets.all(16),
+        height: currentItems.length > 1 ? 600 : 330,
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                const Text(
+                  "ရွေးချယ်ထားသောပွဲများ",
+                  style: TextStyle(fontWeight: FontWeight.bold),
+                ),
+                if (isRefreshing)
+                  const SizedBox(
+                    width: 16,
+                    height: 16,
+                    child: CircularProgressIndicator(strokeWidth: 2),
+                  ),
+              ],
+            ),
+            const Gap(10),
+            if (currentItems.any((item) => item.isOddUpdate == true)) ...[
+              Container(
+                  width: double.infinity,
+                  padding: const EdgeInsets.all(5),
+                  decoration: BoxDecoration(
+                    color: AppResources.colors.yellow100,
+                  ),
+                  child: Text(
+                    "ကြေးအပြောင်းလဲရှိပါသည်",
+                    textAlign: TextAlign.center,
+                    style: TextStyle(
+                        color: AppResources.colors.yellow500,
+                        fontWeight: FontWeight.bold),
+                  )),
+              const Gap(10)
+            ],
+
+            // ... rest of your existing ListView code remains the same ...
+            currentItems.length > 1
+                ? Expanded(
+                    child: ListView.separated(
+                      shrinkWrap: true,
+                      physics: const BouncingScrollPhysics(),
+                      itemCount: currentItems.length,
+                      separatorBuilder: (context, index) => Gap(15),
+                      itemBuilder: (context, index) {
+                        return _AccumulatorEstimateFixtureRow(
+                          data: currentItems[index],
+                          onDeletePrediction: _onDeletePrediction,
+                        );
+                      },
+                    ),
+                  )
+                : ListView.separated(
+                    shrinkWrap: true,
+                    physics: const NeverScrollableScrollPhysics(),
+                    itemCount: currentItems.length,
+                    separatorBuilder: (context, index) => Gap(15),
+                    itemBuilder: (context, index) {
+                      return _AccumulatorEstimateFixtureRow(
+                        data: currentItems[index],
+                        onDeletePrediction: _onDeletePrediction,
+                      );
+                    },
+                  ),
+            const Gap(10),
+            Column(
+              children: [
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    const Text(
+                      "လောင်းငွေ",
+                      style: TextStyle(color: Colors.grey),
+                    ),
+                    Text(
+                      estimateData?.predictedCoin?.toPricing ??
+                          "0 Ks", // Use currentData
+                      style: TextStyle(fontWeight: FontWeight.bold),
+                    )
+                  ],
+                ),
+                const Gap(10),
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    const Text(
+                      "ခန့်မှန်းနိုင်ငွေ",
+                      style: TextStyle(color: Colors.grey),
+                    ),
+                    Text(
+                      estimateData?.estimatedWinningCoin?.toPricing ??
+                          "တွက်ချက်နေပါသည်", // Use currentData
+                      style: TextStyle(fontWeight: FontWeight.bold),
+                    )
+                  ],
+                ),
+                const Gap(10),
+                Row(
+                  children: [
+                    Expanded(
+                      child: OutlinedButton(
+                        style: OutlinedButton.styleFrom(
+                          side: const BorderSide(color: Color(0xFF484C54)),
+                          shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(8)),
+                        ),
+                        onPressed: isRefreshing
+                            ? null
+                            : () {
+                                widget.onClose();
+                              },
+                        child: const Text('ပြင်မည်'),
+                      ),
+                    ),
+                    const SizedBox(width: 16),
+                    Expanded(
+                      child: ElevatedButton(
+                        style: ElevatedButton.styleFrom(
+                          shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(8)),
+                        ),
+                        onPressed: isRefreshing ? null : widget.onConfirm,
+                        child: const Text('လောင်းမည်'),
+                      ),
+                    ),
+                  ],
+                ),
+              ],
+            )
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+class _AccumulatorEstimateFixtureRow extends StatefulWidget {
+  final AccumulatorEstimateFixtureItem data;
+  final Function(int id) onDeletePrediction;
+  const _AccumulatorEstimateFixtureRow(
+      {required this.data, required this.onDeletePrediction});
+
+  @override
+  State<_AccumulatorEstimateFixtureRow> createState() =>
+      _AccumulatorEstimateFixtureRowState();
+}
+
+class _AccumulatorEstimateFixtureRowState
+    extends State<_AccumulatorEstimateFixtureRow>
+    with SingleTickerProviderStateMixin {
+  late AnimationController _animationController;
+  late Animation<Color?> _colorAnimation;
+  Timer? _expireCheckTimer;
+  bool _isExpired = false;
+  bool _wasOddUpdated = false;
+
+  @override
+  void initState() {
+    super.initState();
+
+    _animationController = AnimationController(
+      duration: const Duration(seconds: 1),
+      vsync: this,
+    );
+
+    _colorAnimation = ColorTween(
+      begin: AppResources.colors.yellow100,
+      end: AppResources.colors.yellow500.withAlpha(2),
+    ).animate(CurvedAnimation(
+      parent: _animationController,
+      curve: Curves.easeInOut,
+    ));
+
+    _isExpired = widget.data.matchDateAndTime?.isExpired() ?? false;
+    _wasOddUpdated = widget.data.isOddUpdate ?? false;
+
+    _startExpireCheckTimer();
+    _startAnimationIfNeeded();
+  }
+
+  @override
+  void didUpdateWidget(_AccumulatorEstimateFixtureRow oldWidget) {
+    super.didUpdateWidget(oldWidget);
+
+    final currentOddUpdate = widget.data.isOddUpdate ?? false;
+    final previousOddUpdate = oldWidget.data.isOddUpdate ?? false;
+
+    if (currentOddUpdate != previousOddUpdate) {
+      print(
+          "Odd update status changed: $previousOddUpdate -> $currentOddUpdate");
+      _wasOddUpdated = currentOddUpdate;
+      _startAnimationIfNeeded();
+    }
+
+    final newExpiredStatus = widget.data.matchDateAndTime?.isExpired() ?? false;
+    if (_isExpired != newExpiredStatus) {
+      setState(() {
+        _isExpired = newExpiredStatus;
+      });
+    }
+  }
+
+  void _startAnimationIfNeeded() {
+    if (_wasOddUpdated) {
+      print("Starting animation for odd update");
+      if (!_animationController.isAnimating) {
+        _animationController.repeat(reverse: true);
+      }
+    } else {
+      print("Stopping animation - no odd update");
+      if (_animationController.isAnimating) {
+        _animationController.stop();
+        _animationController.reset();
+      }
+    }
+  }
+
+  void _startExpireCheckTimer() {
+    _expireCheckTimer = Timer.periodic(const Duration(seconds: 1), (timer) {
+      if (!mounted) {
+        timer.cancel();
+        return;
+      }
+
+      final currentlyExpired =
+          widget.data.matchDateAndTime?.isExpired() ?? false;
+
+      if (_isExpired != currentlyExpired) {
+        setState(() {
+          _isExpired = currentlyExpired;
+        });
+
+        if (currentlyExpired && !_isExpired) {
+          print(
+              'Match expired: ${widget.data.homeTeam} vs ${widget.data.awayTeam}');
+        }
+      }
+    });
+  }
+
+  @override
+  void dispose() {
+    _animationController.dispose();
+    _expireCheckTimer?.cancel();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final isHomeSelected = (widget.data.predictedSide == "home");
+    final isAwaySelected = (widget.data.predictedSide == "away");
+    final isUnderSelected = (widget.data.predictedSide == "under");
+    final isOverSelected = (widget.data.predictedSide == "over");
+
+    return AnimatedBuilder(
+      animation: _colorAnimation,
+      builder: (context, child) {
+        final containerColor = widget.data.isOddUpdate == true
+            ? _colorAnimation.value
+            : AppResources.colors.blue200;
+
+        return Container(
+          color: containerColor,
+          padding: EdgeInsets.all(10),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Row(
+                children: [
+                  Text(
+                    widget.data.matchDateAndTime?.toReadableDateTime() ?? '',
+                    style: const TextStyle(
+                        fontWeight: FontWeight.w500, fontSize: 13),
+                  ),
+                  const Spacer(),
+                  if (_isExpired) ...[
+                    Container(
+                      padding: EdgeInsets.symmetric(vertical: 3, horizontal: 5),
+                      decoration: BoxDecoration(
+                          color: Colors.red.shade100,
+                          borderRadius: BorderRadius.circular(5)),
+                      child: const Text(
+                        "Expired",
+                        style: TextStyle(
+                            fontSize: 10,
+                            color: Colors.red,
+                            fontWeight: FontWeight.bold),
+                      ),
+                    ),
+                    const Gap(3),
+                  ],
+                  GestureDetector(
+                      onTap: () {
+                        widget.onDeletePrediction(widget.data.fixtureId ?? 0);
+                      },
+                      child: Icon(Icons.close))
+                ],
+              ),
+              const Gap(10),
+              IntrinsicHeight(
+                child: Row(
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
+                  children: <Widget>[
+                    Expanded(
+                      child: _buildDecorator(
+                        backgroundColor: isHomeSelected
+                            ? AppResources.colors.blue700
+                            : Colors.white,
+                        child: Padding(
+                          padding: const EdgeInsets.symmetric(horizontal: 10),
+                          child: Row(
+                            mainAxisAlignment:
+                                (widget.data.isHomeTeamUpper ?? false)
+                                    ? MainAxisAlignment.spaceBetween
+                                    : MainAxisAlignment.center,
+                            children: [
+                              Expanded(
+                                child: Text(
+                                  widget.data.homeTeam ?? "",
+                                  maxLines: 2,
+                                  textAlign: TextAlign.center,
+                                  style: TextStyle(
+                                    fontSize: 12,
+                                    fontWeight: FontWeight.w600,
+                                    height: 1.1,
+                                    color: isHomeSelected
+                                        ? Colors.white
+                                        : (widget.data.isHomeTeamUpper ?? false)
+                                            ? AppResources.colors.red600
+                                            : AppResources.colors.blue600,
+                                  ),
+                                ),
+                              ),
+                              if (widget.data.predictionType == "body" &&
+                                  (widget.data.isHomeTeamUpper ?? false)) ...[
+                                const Gap(5),
+                                Text(
+                                  // data.handicapValue
+                                  " (${widget.data.handicapValue?.withSignPrefix(withoutPlusSign: true, withoutSpace: true)}${widget.data.handicapPrice?.withSignPrefix(withoutSpace: true)})",
+                                  style: TextStyle(
+                                    fontSize: 12,
+                                    fontWeight: FontWeight.w600,
+                                    height: 1.1,
+                                    color: isHomeSelected
+                                        ? Colors.white
+                                        : AppResources.colors.blue600,
+                                  ),
+                                ),
+                              ]
+                            ],
+                          ),
+                        ),
+                      ),
+                    ),
+                    const Gap(5),
+                    Expanded(
+                      child: _buildDecorator(
+                        backgroundColor: isAwaySelected
+                            ? AppResources.colors.blue700
+                            : Colors.white,
+                        child: Padding(
+                          padding: const EdgeInsets.symmetric(horizontal: 10),
+                          child: Row(
+                            mainAxisAlignment:
+                                !(widget.data.isHomeTeamUpper ?? false)
+                                    ? MainAxisAlignment.spaceBetween
+                                    : MainAxisAlignment.center,
+                            children: [
+                              Expanded(
+                                  child: Text(
+                                widget.data.awayTeam ?? "",
+                                maxLines: 2,
+                                textAlign: TextAlign.center,
+                                style: TextStyle(
+                                  fontSize: 12,
+                                  fontWeight: FontWeight.w600,
+                                  height: 1.1,
+                                  color: isAwaySelected
+                                      ? Colors.white
+                                      : !(widget.data.isHomeTeamUpper ?? false)
+                                          ? AppResources.colors.red600
+                                          : AppResources.colors.blue600,
+                                ),
+                              )),
+                              if (widget.data.predictionType == "body" &&
+                                  !(widget.data.isHomeTeamUpper ?? false)) ...[
+                                const Gap(5),
+                                Text(
+                                  //"",
+                                  "(${widget.data.handicapValue?.withSignPrefix(withoutPlusSign: true, withoutSpace: true)}${widget.data.handicapPrice?.withSignPrefix(withoutSpace: true)})",
+                                  style: TextStyle(
+                                    fontSize: 12,
+                                    fontWeight: FontWeight.w600,
+                                    height: 1.1,
+                                    color: isAwaySelected
+                                        ? Colors.white
+                                        : AppResources.colors.blue600,
+                                  ), // smaller text
+                                ),
+                              ]
+                            ],
+                          ),
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              const Gap(5),
+              Row(
+                children: [
+                  Expanded(
+                    flex: 2,
+                    child: _buildDecorator(
+                      backgroundColor: isOverSelected
+                          ? AppResources.colors.blue700
+                          : Colors.white,
+                      child: Text(
+                        "G - Over",
+                        style: TextStyle(
+                            fontSize: 12,
+                            fontWeight: FontWeight.w600,
+                            color: isOverSelected
+                                ? Colors.white
+                                : AppResources.colors.neutral800),
+                      ),
+                    ),
+                  ),
+                  const Gap(5),
+                  if (widget.data.predictionType == "goal_total")
+                    Expanded(
+                      flex: 1,
+                      child: _buildDecorator(
+                        backgroundColor: AppResources.colors.blue600,
+                        child: Text(
+                          "${widget.data.handicapValue?.withSignPrefix(withoutPlusSign: true)}${widget.data.handicapPrice?.withSignPrefix()}",
+                          style: const TextStyle(
+                              fontSize: 12,
+                              fontWeight: FontWeight.w600,
+                              color: Colors.white),
+                        ),
+                      ),
+                    ),
+                  const Gap(5),
+                  Expanded(
+                    flex: 2,
+                    child: _buildDecorator(
+                      backgroundColor: isUnderSelected
+                          ? AppResources.colors.blue700
+                          : Colors.white,
+                      child: Text(
+                        "G - Under",
+                        style: TextStyle(
+                            fontSize: 12,
+                            fontWeight: FontWeight.w600,
+                            color: isUnderSelected
+                                ? Colors.white
+                                : AppResources.colors.neutral800),
+                      ),
+                    ),
+                  )
+                ],
+              )
+            ],
+          ),
+        );
+      },
+    );
+  }
+
+  Widget _buildDecorator(
+      {required Widget child, required Color backgroundColor}) {
+    return Container(
+      alignment: Alignment.center,
+      padding: const EdgeInsets.symmetric(vertical: 10),
+      decoration: BoxDecoration(
+          color: backgroundColor, borderRadius: BorderRadius.circular(5)),
+      child: child,
+    );
+  }
+}

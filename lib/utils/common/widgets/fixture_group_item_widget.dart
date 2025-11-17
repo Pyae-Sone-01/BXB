@@ -81,11 +81,16 @@ class FixtureGroupItemWidget extends StatelessWidget {
               padding: const EdgeInsets.all(12),
               child: Column(
                 children: [
-                  ...?fixture.fixtures?.map((e) => FixtureRow(
-                        key: ValueKey(e.id),
-                        data: e,
-                        onPrediction: onPrediction,
-                        prediction: predictions,
+                  ...?fixture.fixtures?.map((e) => Column(
+                        children: [
+                          FixtureRow(
+                            key: ValueKey(e.id),
+                            data: e,
+                            onPrediction: onPrediction,
+                            prediction: predictions,
+                          ),
+                          Gap(15)
+                        ],
                       )),
                 ],
               ),
@@ -114,12 +119,12 @@ class FixtureRow extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final matchedPrediction = prediction.firstWhere(
-      (p) => p.fixtureId == data.id && p.handicapOddId == data.oddId,
+      (p) => p.fixtureId == data.id,
       orElse: () => PredictionFixtureModel(
-        fixtureId: data.id ?? 0,
-        handicapOddId: data.oddId ?? 0,
-        predictedSide: "",
-      ),
+          fixtureId: data.id ?? 0,
+          oddId: data.oddId ?? 0,
+          predictedSide: "",
+          matchDateAndTime: data.matchDateAndTime),
     );
     final selectedPredictedSide = matchedPrediction.predictedSide;
 
@@ -151,7 +156,8 @@ class FixtureRow extends StatelessWidget {
                     onPrediction(
                       data: PredictionFixtureModel(
                           fixtureId: data.id ?? 0,
-                          handicapOddId: data.oddId ?? 0,
+                          oddId: data.oddId ?? 0,
+                          matchDateAndTime: data.matchDateAndTime,
                           predictedSide: "home"),
                     );
                   },
@@ -208,7 +214,8 @@ class FixtureRow extends StatelessWidget {
                     onPrediction(
                       data: PredictionFixtureModel(
                           fixtureId: data.id ?? 0,
-                          handicapOddId: data.oddId ?? 0,
+                          oddId: data.oddId ?? 0,
+                          matchDateAndTime: data.matchDateAndTime,
                           predictedSide: "away"),
                     );
                   },
@@ -270,7 +277,8 @@ class FixtureRow extends StatelessWidget {
                   onPrediction(
                     data: PredictionFixtureModel(
                         fixtureId: data.id ?? 0,
-                        handicapOddId: data.oddId ?? 0,
+                        oddId: data.oddId ?? 0,
+                        matchDateAndTime: data.matchDateAndTime,
                         predictedSide: "over"),
                   );
                 },
@@ -310,7 +318,8 @@ class FixtureRow extends StatelessWidget {
                   onPrediction(
                     data: PredictionFixtureModel(
                         fixtureId: data.id ?? 0,
-                        handicapOddId: data.oddId ?? 0,
+                        oddId: data.oddId ?? 0,
+                        matchDateAndTime: data.matchDateAndTime,
                         predictedSide: "under"),
                   );
                 },

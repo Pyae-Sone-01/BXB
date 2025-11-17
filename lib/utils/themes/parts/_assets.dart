@@ -4,6 +4,11 @@ class _Assets {
   final icons = _Icons();
   final images = _Images();
   final gifs = _Gifs();
+  final media = _Media();
+}
+
+class _Media {
+  final String click = "assets/media/click.wav";
 }
 
 class _Icons {
@@ -12,6 +17,9 @@ class _Icons {
   final String coinIn = "assets/icons/coin_in.svg";
   final String bffCoin = "assets/icons/bff_coin.svg";
   final String rightUpperArrow = "assets/icons/right_upper_arror.svg";
+  final String support = "assets/icons/support.svg";
+  final String target = "assets/icons/target.svg";
+  final String trending = "assets/icons/trending.svg";
 }
 
 class _Images {
@@ -22,10 +30,12 @@ class _Images {
   final String football3d = "assets/images/football-3d.png";
   final String money3d = "assets/images/money-3d.png";
   final String whistle3d = "assets/images/whistle-3d.png";
+  final String clockBox = "assets/images/clock-box.png";
 }
 
 class _Gifs {
   final String loading = "assets/gifs/loading.gif";
+  final String celebration = "assets/gifs/celebration.gif";
 }
   
   

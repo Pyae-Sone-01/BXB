@@ -1,4 +1,7 @@
+import 'package:bxb/services/firebase/firebase_service.dart';
 import 'package:connectivity_plus/connectivity_plus.dart';
+import 'package:firebase_analytics/firebase_analytics.dart';
+
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -9,6 +12,7 @@ import 'datasources/services/local/local_storage_service.dart';
 import 'router/router.dart';
 import 'utils/providers/connectivity_provider.dart';
 import 'utils/themes/app_resources.dart';
+import 'package:clarity_flutter/clarity_flutter.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -19,12 +23,28 @@ void main() async {
       statusBarIconBrightness: Brightness.light,
     ),
   );
+
   await initialization();
-  runApp(const ProviderScope(child: MyApp()));
+  final config = ClarityConfig(
+      projectId: "u072d5sk9m",
+      logLevel: LogLevel
+          .None // Note: Use "LogLevel.Verbose" value while testing to debug initialization issues.
+      );
+  runApp(ProviderScope(
+      child: ClarityWidget(
+    clarityConfig: config,
+    app: const MyApp(),
+  )));
 }
 
 Future initialization() async {
   await LocalStorageServices.init();
+  try {
+    await FirebaseService.initFirebase();
+    await FirebaseAnalytics.instance.setAnalyticsCollectionEnabled(true);
+  } catch (e) {
+    print(e.toString());
+  }
 }
 
 class MyApp extends ConsumerStatefulWidget {

@@ -117,7 +117,9 @@ class __WalletInfoWidgetState extends ConsumerState<_WalletInfoWidget> {
               _selectedTab == 0
                   ? _coinInCoinOut()
                   : ElevatedButton(
-                      onPressed: () {},
+                      onPressed: () {
+                        context.pushNamed(RouteNames.coin.transferBff);
+                      },
                       style: ElevatedButton.styleFrom(
                         shape: RoundedRectangleBorder(
                           borderRadius: BorderRadius.circular(

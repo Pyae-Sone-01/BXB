@@ -1,6 +1,9 @@
 import 'dart:convert';
 
 import 'package:dio/dio.dart';
+import 'package:encrypt/encrypt.dart';
+import 'package:intl/intl.dart';
+import 'package:pointycastle/asymmetric/api.dart';
 
 import '../../models/base_response.dart';
 import '../local/local_storage_service.dart';
@@ -59,6 +62,11 @@ class ApiServiceImpl implements ApiService {
       'accept': 'application/json; charset=utf-8',
       'content-type': 'application/json',
       'accept-type': 'application/json',
+      'accept-language':
+          (LocalStorageServices.getData(LocalStorageKey.language).isEmpty
+              ? 'mm'
+              : LocalStorageServices.getData(LocalStorageKey.language)),
+      "API-KEY": ApiSecurityKeyService.getApiKey()
     });
   }
 
@@ -213,7 +221,7 @@ class ApiServiceImpl implements ApiService {
   _handleResponse(Response response) {
     if (response.statusCode != null &&
         response.statusCode! >= 200 &&
-        response.statusCode! < 300) {
+        response.statusCode! < 400) {
       return response.data;
     } else {
       throw ApiException(
@@ -330,5 +338,26 @@ class ApiException implements Exception {
   String toString() {
     print('ApiException: $message (Status: $statusCode, Path: $path)');
     return message;
+  }
+}
+
+class ApiSecurityKeyService {
+  static String getApiKey() {
+    const apiString = 'bff-api-security';
+    final currentDate = DateTime.now();
+    final formattedDate = DateFormat('yyyy-MM-dd HH:mm:ss').format(currentDate);
+    final dataToEncrypt = '$apiString/$formattedDate';
+    final encrypter = Encrypter(RSA(publicKey: _getPublicKey()));
+    final encrypted = encrypter.encrypt(dataToEncrypt);
+    return encrypted.base64;
+  }
+
+  static RSAPublicKey _getPublicKey() {
+    const pem =
+        '''-----BEGIN PUBLIC KEY-----\nMIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAsviycg2tzIf5lxMW1gWN\ndzTkeGK5pkheVSNHqxZPJu1dfoeLIOgNUQA1DuFr02oE6u5FuVthosBnxb/bmB08\nMzde6ocb1vtaP5KTCY1DmOnZ/Vw64NeDBnqNJn0feKotvk2pWZGThoHIsFApuM4/\n4gN8lWih6iQFvLfBdNcobyzADEZkQ2dHJay8sDTKgEqFQ3L+TGuj4Zzgs+nvIy+t\nQkTK72DHFY33NZz1BLQXHo0mPfO3nClkAeKaKQ4i/DuVBX/hSbbNgPVrXfmeRv54\nn4yrR1FG1gFLoapYDM6IDKtJUi19Mh8IAwuBtqkV4aTSHLg8BqjFHfxbbqIHNBLu\nfwIDAQAB\n-----END PUBLIC KEY-----''';
+
+    final parser = RSAKeyParser();
+    final publicKey = parser.parse(pem) as RSAPublicKey;
+    return publicKey;
   }
 }

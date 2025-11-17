@@ -132,7 +132,6 @@ class _OtpVerifyScreenState extends ConsumerState<OtpVerifyScreen> {
                           style: TextStyle(
                             color: Color(0xFF1846C7),
                             fontWeight: FontWeight.bold,
-                            fontSize: 16,
                           ),
                         ),
                         style: ElevatedButton.styleFrom(

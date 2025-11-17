@@ -40,7 +40,7 @@ class _SelectPaymentMethodWidget extends ConsumerWidget {
               return GestureDetector(
                 onTap: () {
                   ref
-                      .read(coinInViewModelImplProvider.notifier)
+                      .read(coinOutViewModelImplProvider.notifier)
                       .selectPayment(index);
                 },
                 child: Container(

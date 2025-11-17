@@ -1,3 +1,4 @@
+import 'package:bxb/datasources/services/local/local_storage_service.dart';
 import 'package:bxb/router/router.dart';
 import 'package:bxb/services/auth/auth_service.dart';
 import 'package:bxb/services/auth/providers/auth_service_provider.dart';
@@ -5,6 +6,7 @@ import 'package:bxb/services/coin/coin_service.dart';
 import 'package:bxb/services/user/models/user_model.dart';
 import 'package:bxb/services/user/providers/user_service_provider.dart';
 import 'package:bxb/services/user/user_service.dart';
+import 'package:bxb/utils/common/dialog_manager/dialog_manager.dart';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
@@ -15,6 +17,15 @@ part 'home_view_model.g.dart';
 
 abstract class HomeViewModel {
   void logout(BuildContext context);
+  void updateAgentCode(BuildContext context, {required String value});
+  void updateWidthdrawPin(BuildContext context,
+      {required String currentPin, required String newPin});
+
+  void showRuleAndRegulationDialog(
+    BuildContext context,
+  );
+
+  void setLanguage({required String lan});
 }
 
 class HomeState {
@@ -22,20 +33,28 @@ class HomeState {
   final num? myCoin;
   final BffCoinModel? bffCoin;
   final UserModel? userData;
+  final String language;
 
-  HomeState({this.isLoading = false, this.myCoin, this.bffCoin, this.userData});
+  HomeState(
+      {this.isLoading = false,
+      this.myCoin,
+      this.bffCoin,
+      this.userData,
+      this.language = "mm"});
 
   HomeState copyWith({
     bool? isLoading,
     num? myCoin,
     BffCoinModel? bffCoin,
     UserModel? userData,
+    String? language,
   }) {
     return HomeState(
       isLoading: isLoading ?? this.isLoading,
       myCoin: myCoin ?? this.myCoin,
       bffCoin: bffCoin ?? this.bffCoin,
       userData: userData ?? this.userData,
+      language: language ?? this.language,
     );
   }
 }
@@ -58,6 +77,11 @@ class HomeViewModelImpl extends _$HomeViewModelImpl implements HomeViewModel {
   }
 
   Future<void> initializeData() async {
+    final lan = LocalStorageServices.getData(LocalStorageKey.language);
+    if (lan.isNotEmpty) {
+      setLanguage(lan: lan);
+    }
+
     state = state.copyWith(isLoading: true);
     final results = await Future.wait([
       _coinService.myCoin(),
@@ -74,5 +98,50 @@ class HomeViewModelImpl extends _$HomeViewModelImpl implements HomeViewModel {
           bffCoinResult.isSuccess ? bffCoinResult.data as BffCoinModel? : null,
       userData: userResult.isSuccess ? userResult.data as UserModel? : null,
     );
+  }
+
+  @override
+  void updateAgentCode(BuildContext context, {required String value}) async {
+    DialogManger.showLoading(context);
+    final res = await _userService.updateAgentCode({"agent_code": value});
+
+    DialogManger.closeDialog(context);
+
+    initializeData();
+
+    DialogManger.showAutoCloseResultDialog(context,
+        isSuccess: res.isSuccess,
+        description: res.isSuccess ? res.msg ?? "" : res.error ?? "");
+  }
+
+  @override
+  void updateWidthdrawPin(BuildContext context,
+      {required String currentPin, required String newPin}) async {
+    DialogManger.showLoading(context);
+    final res = await _userService
+        .updateWidthdrawPin({"current_pin": currentPin, "new_pin": newPin});
+
+    DialogManger.closeDialog(context);
+    DialogManger.showAutoCloseResultDialog(context,
+        isSuccess: res.isSuccess,
+        description: res.isSuccess ? res.msg ?? "" : res.error ?? "");
+  }
+
+  @override
+  void showRuleAndRegulationDialog(BuildContext context) {
+    final isNotFirstTimeUser =
+        LocalStorageServices.getBoolData(LocalStorageKey.isNotFirstTimeUser);
+    if (!isNotFirstTimeUser) {
+      DialogManger.showRuleAndRegulationDialog(context);
+      LocalStorageServices.setBoolData(
+          LocalStorageKey.isNotFirstTimeUser, true);
+    }
+  }
+
+  @override
+  void setLanguage({required String lan}) {
+    print(lan);
+    LocalStorageServices.setData(LocalStorageKey.language, lan);
+    state = state.copyWith(language: lan);
   }
 }

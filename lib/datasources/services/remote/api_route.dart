@@ -2,8 +2,8 @@ class ApiRoute {
   ApiRoute._();
   // Use your local network IP (e.g., 192.168.1.100) instead of localhost for mobile device access
   static const String baseUrl = 'https://football-api.cactusminds.com/api/v1';
-
-  static const String socketUrl = "http://192.168.2.101:4000";
+  //static const String baseUrl = "https://24-frontapi.ballxbet.com/api/v1";
+  // static const String socketUrl = "http://192.168.2.101:4000";
   static final misc = _Misc();
   static final auth = _Authentication();
   static final user = _User();
@@ -12,7 +12,10 @@ class ApiRoute {
   static final prediction = _Prediction();
 }
 
-class _Misc {}
+class _Misc {
+  final String notification = "/notifications/list";
+  final String checkForUpdate = "/misc/check-force-update";
+}
 
 class _Authentication {
   final String userLogin = "/login";
@@ -24,6 +27,9 @@ class _Authentication {
 
   final String verifyOtp = "/auth/verify-otp";
   final String register = "/auth/register";
+  final String checkAtomPhone = "/auth/check-atom-phone-number";
+  final String registerWithAtom = "/auth/register-with-atom";
+  final String loginWithAtom = "/auth/login-with-atom";
 }
 
 class _Coin {
@@ -34,6 +40,7 @@ class _Coin {
   final String coinHistories = "/coins/histories";
   final String depositCoin = "/coins/deposit";
   final String withdraw = "/coins/withdraw";
+  final String depositBffCoin = "/coins/deposit-coin-from-bff";
 }
 
 class _User {
@@ -57,4 +64,8 @@ class _Prediction {
   final String handicapEstimateWinning =
       "/predictions/handicap-estimated-winning";
   final String handicapPrediction = "/predictions/handicap";
+  final String accumulatorEstimateWinning =
+      "/predictions/accumulator-estimated-winning";
+  final String accumulatorPrediction = "/predictions/accumulator";
+  final String shareData = "/predictions/get-share-data";
 }

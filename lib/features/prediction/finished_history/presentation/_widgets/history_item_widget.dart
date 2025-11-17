@@ -2,7 +2,10 @@ part of '../finished_history_screen.dart';
 
 class _HistoryItemWidget extends StatelessWidget {
   final HistoryModel data;
-  const _HistoryItemWidget({required this.data});
+
+  const _HistoryItemWidget({
+    required this.data,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -20,7 +23,9 @@ class _HistoryItemWidget extends StatelessWidget {
               children: [
                 Container(
                   decoration: BoxDecoration(
-                    color: const Color(0xFF4CAF50),
+                    color: data.status == "win"
+                        ? const Color(0xFF4CAF50)
+                        : Colors.red,
                     borderRadius: BorderRadius.circular(12),
                   ),
                   padding: const EdgeInsets.all(10),
@@ -85,7 +90,10 @@ class _HistoryItemWidget extends StatelessWidget {
             ),
             const Gap(8),
             _buildInfoRow(
-                label: "မောင်း", value: data.orderItemsCount.toString()),
+                label: data.type == "accumulator"
+                    ? "မောင်း"
+                    : "ဘော်ဒီ / ဂိုးပေါင်း",
+                value: data.orderItemsCount.toString()),
             _buildInfoRow(
                 label: "လောင်းငွေ",
                 value: data.predictedCoin?.toPricing ?? "0 Ks"),
@@ -95,39 +103,90 @@ class _HistoryItemWidget extends StatelessWidget {
             _buildInfoRow(
               label: "နိုင်/ရူံး",
               value: (data.status ?? "").toUpperCase(),
-              textColor: Colors.green,
+              textColor:
+                  data.status == "win" ? const Color(0xFF4CAF50) : Colors.red,
             ),
             const Gap(16),
-            GestureDetector(
-              onTap: () {
-                context.pushNamed(RouteNames.prediciton.historyDetail,
-                    queryParameters: {"id": data.id.toString()});
-              },
-              child: Container(
-                width: double.infinity,
-                padding: const EdgeInsets.symmetric(vertical: 10),
-                decoration: BoxDecoration(
-                  color: AppResources.colors.blue100,
-                  borderRadius: BorderRadius.circular(8),
-                ),
-                child: Row(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    Text(
-                      'အသေးစိတ်ကြည့်ရူ့ရန်',
-                      style: TextStyle(
-                        color: AppResources.colors.blue700,
-                        fontSize: 16,
+            Row(
+              children: [
+                Expanded(
+                  child: GestureDetector(
+                    onTap: () {
+                      context.pushNamed(RouteNames.prediciton.historyDetail,
+                          queryParameters: {"id": data.id.toString()});
+                    },
+                    child: Container(
+                      width: double.infinity,
+                      padding: const EdgeInsets.symmetric(vertical: 10),
+                      decoration: BoxDecoration(
+                        color: AppResources.colors.blue100,
+                        borderRadius: BorderRadius.circular(8),
+                      ),
+                      child: Row(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          Text(
+                            'View Detail',
+                            style: TextStyle(
+                              color: AppResources.colors.blue700,
+                              fontSize: 13,
+                            ),
+                          ),
+                          const Gap(5),
+                          CustomImageWidget(
+                            AppResources.assets.icons.rightUpperArrow,
+                            width: 17,
+                            color: AppResources.colors.blue700,
+                          )
+                        ],
                       ),
                     ),
-                    CustomImageWidget(
-                      AppResources.assets.icons.rightUpperArrow,
-                      width: 17,
-                      color: AppResources.colors.blue700,
-                    )
-                  ],
+                  ),
                 ),
-              ),
+                const Gap(10),
+                Expanded(
+                  child: GestureDetector(
+                    onTap: () {
+                      if (data.type == "accumulator") {
+                        context.pushNamed(
+                            RouteNames.prediciton.shareAccumulatorResult,
+                            queryParameters: {"order_id": data.id.toString()});
+                      } else {
+                        context.pushNamed(
+                            RouteNames.prediciton.shareHandicapResult,
+                            queryParameters: {"order_id": data.id.toString()});
+                      }
+                    },
+                    child: Container(
+                      width: double.infinity,
+                      padding: const EdgeInsets.symmetric(vertical: 10),
+                      decoration: BoxDecoration(
+                        color: Colors.green,
+                        borderRadius: BorderRadius.circular(8),
+                      ),
+                      child: const Row(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          Icon(
+                            Icons.share,
+                            color: Colors.white,
+                            size: 20,
+                          ),
+                          Gap(5),
+                          Text(
+                            'Share',
+                            style: TextStyle(
+                              color: Colors.white,
+                              fontSize: 13,
+                              fontWeight: FontWeight.w500,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+                ),
+              ],
             ),
           ],
         ),

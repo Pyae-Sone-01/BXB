@@ -1,5 +1,6 @@
 import 'package:bxb/features/fixture/score/view_model/score_view_model.dart';
 import 'package:bxb/services/fixture/models/fixture_for_score_model.dart';
+import 'package:bxb/utils/common/widgets/empty_error_widget.dart';
 import 'package:bxb/utils/common/widgets/loading_widget.dart';
 import 'package:bxb/utils/extension/string_extension.dart';
 import 'package:bxb/utils/helpers/functions.dart';
@@ -111,6 +112,9 @@ class _ScoreScreenState extends ConsumerState<ScoreScreen> {
 
   _buildContent(List<List<LeagueFixtures>> fixtures) {
     final flatFixtures = convertFlattenFixtures(fixtures);
+    if (fixtures.isEmpty) {
+      return const EmptyErrorWidget(msg: "လတ်တလောတွင် ရလဒ်များ မရှိသေးပါ");
+    }
     return ListView.builder(
       padding: const EdgeInsets.all(16),
       itemCount: flatFixtures.length,

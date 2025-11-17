@@ -1,15 +1,44 @@
 part of '../dialog_manager.dart';
 
-class _HandicapEstimateWiningDialogWidget extends StatelessWidget {
-  final EstimateWiningFixtureItemModel data;
+class _HandicapEstimateWiningDialogWidget extends ConsumerStatefulWidget {
+  final EstimateWiningFixtureItemModel initialData;
+  final PredictionFixtureModel prediction;
+  final num predictedCoin;
   final VoidCallback onClose;
   final VoidCallback onConfirm;
 
   const _HandicapEstimateWiningDialogWidget(
-      {required this.data, required this.onClose, required this.onConfirm});
+      {required this.initialData,
+      required this.prediction,
+      required this.predictedCoin,
+      required this.onClose,
+      required this.onConfirm});
+
+  @override
+  ConsumerState<_HandicapEstimateWiningDialogWidget> createState() =>
+      _HandicapEstimateWiningDialogWidgetState();
+}
+
+class _HandicapEstimateWiningDialogWidgetState
+    extends ConsumerState<_HandicapEstimateWiningDialogWidget> {
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      ref
+          .read(handicapEstimateDialogViewModelProvider.notifier)
+          .initializeWithData(
+              data: widget.initialData,
+              predictedCoin: widget.predictedCoin,
+              prediction: widget.prediction);
+    });
+  }
 
   @override
   Widget build(BuildContext context) {
+    final estimateData = ref
+        .watch(handicapEstimateDialogViewModelProvider.select((s) => s.data));
+
     return Dialog(
       insetPadding: const EdgeInsets.all(12),
       child: Container(
@@ -24,7 +53,25 @@ class _HandicapEstimateWiningDialogWidget extends StatelessWidget {
                 style: TextStyle(fontWeight: FontWeight.bold),
               ),
               const Gap(10),
-              _HandicapEstimateFixtureRow(data: data),
+              if (estimateData?.isOddUpdate == true) ...[
+                Container(
+                    width: double.infinity,
+                    padding: const EdgeInsets.all(5),
+                    decoration: BoxDecoration(
+                      color: AppResources.colors.yellow100,
+                    ),
+                    child: Text(
+                      "ကြေးအပြောင်းလဲရှိပါသည်",
+                      textAlign: TextAlign.center,
+                      style: TextStyle(
+                        color: AppResources.colors.yellow500,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    )),
+                const Gap(10)
+              ],
+              if (estimateData != null)
+                _HandicapEstimateFixtureRow(data: estimateData),
               const Gap(10),
               Column(
                 children: [
@@ -36,7 +83,7 @@ class _HandicapEstimateWiningDialogWidget extends StatelessWidget {
                         style: TextStyle(color: Colors.grey),
                       ),
                       Text(
-                        data.predictedCoin?.toPricing ?? "0 Ks",
+                        estimateData?.predictedCoin?.toPricing ?? "0 Ks",
                         style: TextStyle(fontWeight: FontWeight.bold),
                       )
                     ],
@@ -50,7 +97,7 @@ class _HandicapEstimateWiningDialogWidget extends StatelessWidget {
                         style: TextStyle(color: Colors.grey),
                       ),
                       Text(
-                        data.estimatedWinningCoin?.toPricing ?? "0 Ks",
+                        estimateData?.estimatedWinningCoin?.toPricing ?? "0 Ks",
                         style: TextStyle(fontWeight: FontWeight.bold),
                       )
                     ],
@@ -65,7 +112,7 @@ class _HandicapEstimateWiningDialogWidget extends StatelessWidget {
                             shape: RoundedRectangleBorder(
                                 borderRadius: BorderRadius.circular(8)),
                           ),
-                          onPressed: () => Navigator.of(context).pop(),
+                          onPressed: widget.onClose,
                           child: const Text(
                             'ပြင်မည်',
                           ),
@@ -78,7 +125,7 @@ class _HandicapEstimateWiningDialogWidget extends StatelessWidget {
                             shape: RoundedRectangleBorder(
                                 borderRadius: BorderRadius.circular(8)),
                           ),
-                          onPressed: onConfirm,
+                          onPressed: widget.onConfirm,
                           child: const Text(
                             'လောင်းမည်',
                           ),
@@ -111,6 +158,9 @@ class _HandicapEstimateFixtureRowState
     with SingleTickerProviderStateMixin {
   late AnimationController _animationController;
   late Animation<Color?> _colorAnimation;
+  Timer? _expireCheckTimer;
+  bool _isExpired = false;
+  bool _wasOddUpdated = false;
 
   @override
   void initState() {
@@ -123,21 +173,83 @@ class _HandicapEstimateFixtureRowState
 
     _colorAnimation = ColorTween(
       begin: AppResources.colors.yellow100,
-      end: AppResources.colors.yellow500,
+      end: AppResources.colors.yellow500.withAlpha(2),
     ).animate(CurvedAnimation(
       parent: _animationController,
       curve: Curves.easeInOut,
     ));
 
-    // Only start animation if isOddUpdate is true
-    if (widget.data.isOddUpdate == true) {
-      _animationController.repeat(reverse: true);
+    _isExpired = widget.data.matchDateAndTime?.isExpired() ?? false;
+    _wasOddUpdated = widget.data.isOddUpdate ?? false;
+
+    _startExpireCheckTimer();
+    _startAnimationIfNeeded();
+  }
+
+  @override
+  void didUpdateWidget(_HandicapEstimateFixtureRow oldWidget) {
+    super.didUpdateWidget(oldWidget);
+
+    final currentOddUpdate = widget.data.isOddUpdate ?? false;
+    final previousOddUpdate = oldWidget.data.isOddUpdate ?? false;
+
+    if (currentOddUpdate != previousOddUpdate) {
+      print(
+          "Odd update status changed: $previousOddUpdate -> $currentOddUpdate");
+      _wasOddUpdated = currentOddUpdate;
+      _startAnimationIfNeeded();
     }
+
+    final newExpiredStatus = widget.data.matchDateAndTime?.isExpired() ?? false;
+    if (_isExpired != newExpiredStatus) {
+      setState(() {
+        _isExpired = newExpiredStatus;
+      });
+    }
+  }
+
+  void _startAnimationIfNeeded() {
+    if (_wasOddUpdated) {
+      print("Starting animation for odd update");
+      if (!_animationController.isAnimating) {
+        _animationController.repeat(reverse: true);
+      }
+    } else {
+      print("Stopping animation - no odd update");
+      if (_animationController.isAnimating) {
+        _animationController.stop();
+        _animationController.reset();
+      }
+    }
+  }
+
+  void _startExpireCheckTimer() {
+    _expireCheckTimer = Timer.periodic(const Duration(seconds: 1), (timer) {
+      if (!mounted) {
+        timer.cancel();
+        return;
+      }
+
+      final currentlyExpired =
+          widget.data.matchDateAndTime?.isExpired() ?? false;
+
+      if (_isExpired != currentlyExpired) {
+        setState(() {
+          _isExpired = currentlyExpired;
+        });
+
+        if (currentlyExpired && !_isExpired) {
+          print(
+              'Match expired: ${widget.data.homeTeam} vs ${widget.data.awayTeam}');
+        }
+      }
+    });
   }
 
   @override
   void dispose() {
     _animationController.dispose();
+    _expireCheckTimer?.cancel();
     super.dispose();
   }
 
@@ -148,24 +260,43 @@ class _HandicapEstimateFixtureRowState
     final isUnderSelected = (widget.data.predictedSide == "under");
     final isOverSelected = (widget.data.predictedSide == "over");
 
-    // Use animation color if isOddUpdate is true, otherwise use static blue200
-    final containerColor = widget.data.isOddUpdate == true
-        ? _colorAnimation.value
-        : AppResources.colors.blue200;
-
     return AnimatedBuilder(
       animation: _colorAnimation,
       builder: (context, child) {
+        final containerColor = widget.data.isOddUpdate == true
+            ? _colorAnimation.value
+            : AppResources.colors.blue200;
         return Container(
           color: containerColor,
           padding: EdgeInsets.all(10),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Text(
-                widget.data.matchDateAndTime?.toReadableDateTime() ?? '',
-                style:
-                    const TextStyle(fontWeight: FontWeight.w500, fontSize: 13),
+              Row(
+                children: [
+                  Text(
+                    widget.data.matchDateAndTime?.toReadableDateTime() ?? '',
+                    style: const TextStyle(
+                        fontWeight: FontWeight.w500, fontSize: 13),
+                  ),
+                  const Spacer(),
+                  if (_isExpired) ...[
+                    Container(
+                      padding: EdgeInsets.symmetric(vertical: 3, horizontal: 5),
+                      decoration: BoxDecoration(
+                          color: Colors.red.shade100,
+                          borderRadius: BorderRadius.circular(5)),
+                      child: const Text(
+                        "Expired",
+                        style: TextStyle(
+                            fontSize: 10,
+                            color: Colors.red,
+                            fontWeight: FontWeight.bold),
+                      ),
+                    ),
+                    const Gap(3),
+                  ],
+                ],
               ),
               const Gap(10),
               IntrinsicHeight(

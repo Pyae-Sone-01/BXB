@@ -2,6 +2,7 @@ import 'package:bxb/features/prediction/on_going_history/view_model/on_going_his
 import 'package:bxb/router/router.dart';
 import 'package:bxb/services/prediction/models/history_model.dart';
 import 'package:bxb/utils/common/widgets/custom_image_widget.dart';
+import 'package:bxb/utils/common/widgets/empty_error_widget.dart';
 import 'package:bxb/utils/common/widgets/loading_widget.dart';
 import 'package:bxb/utils/extension/num_extension.dart';
 import 'package:bxb/utils/extension/string_extension.dart';
@@ -65,26 +66,30 @@ class _OnGoingHistoryScreenState extends ConsumerState<OnGoingHistoryScreen> {
         },
         child: isLoading
             ? const LoadingWidget()
-            : Column(
-                children: [
-                  Expanded(
-                    child: ListView.builder(
-                      padding: const EdgeInsets.all(15),
-                      controller: _scrollController,
-                      itemCount: histories.length,
-                      itemBuilder: (context, index) {
-                        return HistoryItemWidget(
-                          data: histories[index],
-                        );
-                      },
-                    ),
+            : histories.isEmpty
+                ? EmptyErrorWidget(
+                    msg: "လောင်းထားသော ပွဲများ မရှိပါ",
+                  )
+                : Column(
+                    children: [
+                      Expanded(
+                        child: ListView.builder(
+                          padding: const EdgeInsets.all(15),
+                          controller: _scrollController,
+                          itemCount: histories.length,
+                          itemBuilder: (context, index) {
+                            return HistoryItemWidget(
+                              data: histories[index],
+                            );
+                          },
+                        ),
+                      ),
+                      if (isLoadmore)
+                        const Center(
+                          child: CircularProgressIndicator.adaptive(),
+                        )
+                    ],
                   ),
-                  if (isLoadmore)
-                    const Center(
-                      child: CircularProgressIndicator.adaptive(),
-                    )
-                ],
-              ),
       ),
     );
   }

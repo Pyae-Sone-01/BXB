@@ -7,7 +7,7 @@ part of 'handicap_view_model.dart';
 // **************************************************************************
 
 String _$handicapViewModelImplHash() =>
-    r'25579c8b68046a73d3ddad7af00476fa31c1953f';
+    r'0d5d3874d09270642665e48192f1782f938fd248';
 
 /// See also [HandicapViewModelImpl].
 @ProviderFor(HandicapViewModelImpl)

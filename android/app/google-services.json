@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "760547219290",
+    "project_id": "ballxb",
+    "storage_bucket": "ballxb.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:760547219290:android:545cfa517545d381ae0563",
+        "android_client_info": {
+          "package_name": "com.bff.bxb"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyCCX6cPouCkdtJe-d8QVcm3DWewZ1FjxO8"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

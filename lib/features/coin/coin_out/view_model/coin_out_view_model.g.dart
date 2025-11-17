@@ -7,7 +7,7 @@ part of 'coin_out_view_model.dart';
 // **************************************************************************
 
 String _$coinOutViewModelImplHash() =>
-    r'16f551d5225495bbcc274bf5db5387312ddf6e96';
+    r'bb911a15078c128500817074424383aac7970db7';
 
 /// See also [CoinOutViewModelImpl].
 @ProviderFor(CoinOutViewModelImpl)

@@ -13,9 +13,10 @@ abstract class CoinRepository {
   Future<BaseResponse<List<BankInfoForDepositModel>>> bankInfoForDeposit();
   Future<BaseResponse<List<BankInfoForWithdrawModel>>> bankInfoForWithdraw();
   Future<BaseResponse<List<CoinHistoryModel>>> getCoinHistores(
-      {required bool isGetFromCache});
+      {required bool isGetFromCache, required Map<String, dynamic> payload});
   Future<BaseResponse> depositCoin(Map<String, dynamic> payload);
   Future<BaseResponse> widthdraw(Map<String, dynamic> payload);
+  Future<BaseResponse> depositBffCoin(Map<String, dynamic> payload);
 }
 
 class CoinRepositoryImpl implements CoinRepository {
@@ -63,10 +64,12 @@ class CoinRepositoryImpl implements CoinRepository {
 
   @override
   Future<BaseResponse<List<CoinHistoryModel>>> getCoinHistores(
-      {required bool isGetFromCache}) async {
+      {required bool isGetFromCache,
+      required Map<String, dynamic> payload}) async {
     apiCall() {
       return _apiService.get(
         ApiRoute.coin.coinHistories,
+        queryParameters: payload,
         rawJson: (json) {
           NetworkCacheManager.saveJson(
             jsonData: json,
@@ -109,6 +112,12 @@ class CoinRepositoryImpl implements CoinRepository {
   @override
   Future<BaseResponse> widthdraw(Map<String, dynamic> payload) {
     return _apiService.post(ApiRoute.coin.withdraw,
+        body: payload, fromJson: (data) {});
+  }
+
+  @override
+  Future<BaseResponse> depositBffCoin(Map<String, dynamic> payload) {
+    return _apiService.post(ApiRoute.coin.depositBffCoin,
         body: payload, fromJson: (data) {});
   }
 }

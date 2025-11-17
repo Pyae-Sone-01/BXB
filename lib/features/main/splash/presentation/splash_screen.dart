@@ -17,9 +17,7 @@ class _SplashScreenState extends ConsumerState<SplashScreen> {
   void initState() {
     WidgetsBinding.instance.addPostFrameCallback((_) {
       Future.delayed(const Duration(seconds: 1), () {
-        ref
-            .read(splashViewModelImplProvider.notifier)
-            .navigateToNextScreen(context);
+        ref.read(splashViewModelImplProvider.notifier).initializedData(context);
       });
     });
 

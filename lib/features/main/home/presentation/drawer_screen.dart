@@ -1,10 +1,13 @@
 import 'package:bxb/features/main/home/home_view_model.dart';
+import 'package:bxb/router/router.dart';
 import 'package:bxb/utils/common/dialog_manager/dialog_manager.dart';
 import 'package:bxb/utils/common/widgets/custom_image_widget.dart';
 import 'package:bxb/utils/themes/app_resources.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:gap/gap.dart';
+import 'package:go_router/go_router.dart';
+import 'package:package_info_plus/package_info_plus.dart';
 
 class DrawerScreen extends ConsumerWidget {
   const DrawerScreen({super.key});
@@ -12,6 +15,8 @@ class DrawerScreen extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final user = ref.watch(homeViewModelImplProvider).userData;
+    final lan = ref.watch(homeViewModelImplProvider.select((s) => s.language));
+
     return Drawer(
       backgroundColor: AppResources.colors.blue700,
       child: SafeArea(
@@ -33,6 +38,26 @@ class DrawerScreen extends ConsumerWidget {
                           width: 100,
                         ),
                         Spacer(),
+                        GestureDetector(
+                            onTap: () {
+                              DialogManger.showLanguageSelectDialog(
+                                context,
+                                selectedLanguage: lan,
+                                onLanguageSelected: (lan) {
+                                  ref
+                                      .read(homeViewModelImplProvider.notifier)
+                                      .setLanguage(lan: lan);
+                                },
+                              );
+                            },
+                            child: Container(
+                                padding: const EdgeInsets.symmetric(
+                                    vertical: 5, horizontal: 8),
+                                decoration: BoxDecoration(
+                                  border: Border.all(color: Colors.white60),
+                                  borderRadius: BorderRadius.circular(5),
+                                ),
+                                child: Text(lan == "en" ? "🇬🇧" : "🇲🇲")))
                       ],
                     ),
                   ),
@@ -108,28 +133,60 @@ class DrawerScreen extends ConsumerWidget {
                   ),
                   const Gap(4),
                   // Menu items
+
                   _DrawerMenuButton(
                     icon: Icons.vpn_key,
-                    label: 'Agent Code ထည့်သွင်းရန်',
+                    label: (user?.canUpdateAgent ?? false)
+                        ? 'Agent Code ထည့်သွင်းရန်'
+                        : "View agent Code",
                     onTap: () {
-                      DialogManger.showAddAgentCodeDialog(context,
-                          onConfirm: (value) {});
+                      if ((user?.canUpdateAgent ?? false)) {
+                        DialogManger.showAddAgentCodeDialog(context,
+                            onConfirm: (value) {
+                          ref
+                              .read(homeViewModelImplProvider.notifier)
+                              .updateAgentCode(context, value: value);
+                        });
+                      } else {
+                        DialogManger.showAgentCode(context,
+                            agentCode: user?.agent ?? "");
+                      }
                     },
                   ),
                   _DrawerMenuButton(
                     icon: Icons.password,
-                    label: 'PIN ကို ပြောင်းလဲမည်',
-                    onTap: () {},
+                    label: !(user?.updatedPin ?? false)
+                        ? "PIN သတ်မှတ်ရန်"
+                        : 'PIN ကို ပြောင်းလဲမည်',
+                    onTap: () {
+                      if (!(user?.updatedPin ?? false)) {
+                        context.pushNamed(RouteNames.user.setWithdrawPin);
+                      } else {
+                        DialogManger.showUpdatePinDialog(
+                          context,
+                          onConfirm: (currentPin, newPin) {
+                            ref
+                                .read(homeViewModelImplProvider.notifier)
+                                .updateWidthdrawPin(context,
+                                    currentPin: currentPin, newPin: newPin);
+                          },
+                        );
+                      }
+                    },
                   ),
                   _DrawerMenuButton(
                     icon: Icons.tv,
-                    label: 'ငွေသွင်းငွေထုတ်မှတ်တမ်း',
-                    onTap: () {},
+                    label: 'ငွေသွင်းငွေထုတ်လုပ်နည်း',
+                    onTap: () {
+                      DialogManger.showCoinInCoinOutTutorial(context);
+                    },
                   ),
                   _DrawerMenuButton(
                     icon: Icons.gavel,
                     label: 'စည်းမျဉ်းစည်းကမ်းများ',
-                    onTap: () {},
+                    onTap: () {
+                      DialogManger.showRuleAndRegulationDialog(context);
+                    },
                   ),
                 ],
               ),
@@ -159,10 +216,32 @@ class DrawerScreen extends ConsumerWidget {
                               fontSize: 14)),
                       Spacer(),
                       Icon(Icons.arrow_forward_ios,
-                          size: 20, color: AppResources.colors.red700),
+                          size: 16, color: AppResources.colors.red700),
                     ],
                   ),
                 ),
+              ),
+            ),
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
+              child: FutureBuilder(
+                future: PackageInfo
+                    .fromPlatform(), // requires package_info_plus package
+                builder: (context, AsyncSnapshot<PackageInfo> snapshot) {
+                  final version =
+                      snapshot.hasData ? snapshot.data!.version : '';
+                  return Align(
+                    alignment: Alignment.center,
+                    child: Text(
+                      version.isNotEmpty ? 'Version $version' : '',
+                      style: const TextStyle(
+                        color: Colors.white54,
+                        fontSize: 12,
+                        fontWeight: FontWeight.w500,
+                      ),
+                    ),
+                  );
+                },
               ),
             ),
           ],
@@ -188,12 +267,14 @@ class _DrawerMenuButton extends StatelessWidget {
         borderRadius: BorderRadius.circular(12),
         child: InkWell(
           borderRadius: BorderRadius.circular(12),
-          onTap: onTap,
+          onTap: () {
+            onTap();
+          },
           child: Container(
             padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 14),
             child: Row(
               children: [
-                Icon(icon, color: AppResources.colors.blue700, size: 28),
+                Icon(icon, color: AppResources.colors.blue700, size: 18),
                 const Gap(14),
                 Expanded(
                   child: Text(

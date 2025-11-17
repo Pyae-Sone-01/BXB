@@ -7,7 +7,7 @@ part of 'coin_history_view_model.dart';
 // **************************************************************************
 
 String _$coinHistoryViewModelHash() =>
-    r'91cccd3d262966dbcf0b171d0e2b04eb12789fdb';
+    r'01000e3b3d5f3537b2771af83762b83e96852e56';
 
 /// See also [CoinHistoryViewModel].
 @ProviderFor(CoinHistoryViewModel)

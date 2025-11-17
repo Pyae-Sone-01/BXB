@@ -1,9 +1,11 @@
 import 'package:bxb/features/main/home/presentation/drawer_screen.dart';
 import 'package:bxb/router/router.dart';
 import 'package:bxb/services/coin/models/bff_coin_model.dart';
+import 'package:bxb/utils/common/dialog_manager/dialog_manager.dart';
 import 'package:bxb/utils/common/widgets/custom_image_widget.dart';
 import 'package:bxb/utils/extension/num_extension.dart';
 import 'package:bxb/utils/themes/app_resources.dart';
+import 'package:firebase_analytics/firebase_analytics.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:gap/gap.dart';
@@ -26,6 +28,11 @@ class _HomeScreenState extends ConsumerState<HomeScreen> with RouteAware {
 
     Future.microtask(
         () => ref.read(homeViewModelImplProvider.notifier).initializeData());
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      ref
+          .read(homeViewModelImplProvider.notifier)
+          .showRuleAndRegulationDialog(context);
+    });
   }
 
   @override
@@ -91,6 +98,47 @@ class _HomeScreenState extends ConsumerState<HomeScreen> with RouteAware {
             ],
           ),
         ),
+        actions: [
+          GestureDetector(
+            onTap: () {
+              DialogManger.showSupportDialog(context);
+            },
+            child: CircleAvatar(
+              backgroundColor: AppResources.colors.blue600,
+              radius: 16,
+              child: CustomImageWidget(
+                AppResources.assets.icons.support,
+                color: Colors.white,
+                width: 20,
+              ),
+            ),
+          ),
+          const Gap(16),
+          GestureDetector(
+            onTap: () {
+              context.pushNamed(RouteNames.misc.notification);
+            },
+            child: Stack(
+              alignment: AlignmentGeometry.topRight,
+              children: [
+                CircleAvatar(
+                    backgroundColor: AppResources.colors.blue600,
+                    radius: 16,
+                    child: const Icon(
+                      Icons.notifications,
+                      color: Colors.white,
+                      size: 20,
+                    )),
+                const Positioned(
+                    child: CircleAvatar(
+                  radius: 4,
+                  backgroundColor: Colors.red,
+                ))
+              ],
+            ),
+          ),
+          const Gap(16),
+        ],
       ),
       backgroundColor: Colors.white,
       drawer: const DrawerScreen(),
@@ -115,7 +163,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> with RouteAware {
                   shrinkWrap: true,
                   children: [
                     _FeatureCard(
-                        onTap: () {
+                        onTap: () async {
                           context.pushNamed(RouteNames.fixture.accumulator);
                         },
                         icon: AppResources.assets.images.filed3d,

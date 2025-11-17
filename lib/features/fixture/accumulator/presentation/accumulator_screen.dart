@@ -1,6 +1,7 @@
 import 'package:bxb/features/fixture/accumulator/view_model/accumulator_view_model.dart';
-import 'package:bxb/services/fixture/models/prediction_fixture_model.dart';
+
 import 'package:bxb/utils/common/dialog_manager/dialog_manager.dart';
+import 'package:bxb/utils/common/widgets/empty_error_widget.dart';
 import 'package:bxb/utils/common/widgets/fixture_group_item_widget.dart';
 import 'package:bxb/utils/common/widgets/loading_widget.dart';
 import 'package:bxb/utils/common/widgets/max_payout_widget.dart';
@@ -47,6 +48,9 @@ class _AccumulatorScreenState extends ConsumerState<AccumulatorScreen> {
     final predicitons = ref
         .watch(accumulatorViewModelImplProvider.select((s) => s.predictions));
     final flatFixtures = _flattenFixtures(fixtures);
+
+    final isEmpty =
+        ref.watch(accumulatorViewModelImplProvider.select((s) => s.isEmpty));
     return Scaffold(
       resizeToAvoidBottomInset: true,
       appBar: AppBar(
@@ -73,37 +77,45 @@ class _AccumulatorScreenState extends ConsumerState<AccumulatorScreen> {
       ),
       body: isLoading
           ? const LoadingWidget()
-          : Column(
-              children: [
-                Expanded(
-                  child: ListView.builder(
-                    padding: const EdgeInsets.all(16),
-                    itemCount: flatFixtures.length,
-                    itemBuilder: (context, index) {
-                      final fixture = flatFixtures[index];
-                      return FixtureGroupItemWidget(
-                        fixture: fixture,
-                        predictions: predicitons,
-                        onPrediction: ({required data}) {
-                          ref
-                              .read(accumulatorViewModelImplProvider.notifier)
-                              .selectPrediction(prediction: data);
+          : isEmpty
+              ? const EmptyErrorWidget(
+                  msg: "လတ်တလောတွင် လောင်းရန် ပွဲစဉ်များ မရှိသေးပါ")
+              : Column(
+                  children: [
+                    Expanded(
+                      child: ListView.builder(
+                        padding: const EdgeInsets.all(16),
+                        itemCount: flatFixtures.length,
+                        itemBuilder: (context, index) {
+                          final fixture = flatFixtures[index];
+                          return FixtureGroupItemWidget(
+                            fixture: fixture,
+                            predictions: predicitons,
+                            onPrediction: ({required data}) {
+                              ref
+                                  .read(
+                                      accumulatorViewModelImplProvider.notifier)
+                                  .selectPrediction(context, prediction: data);
+                            },
+                          );
                         },
-                      );
-                    },
-                  ),
+                      ),
+                    ),
+                    MaxPayoutWidget(
+                      minAmt: "၅၀၀",
+                      remainingBalance: remainingBalance.toString(),
+                      predictionCount: predicitons.length,
+                      shouldChangeBtnColor: predicitons.length >= 2,
+                      onPrediction: (value) {
+                        _accumulatorViewModel.onPrediction(context,
+                            predictedCoin: value);
+                      },
+                      onPreviewPrediction: () {
+                        _accumulatorViewModel.showPreviewPrediction(context);
+                      },
+                    )
+                  ],
                 ),
-                MaxPayoutWidget(
-                  remainingBalance: remainingBalance.toString(),
-                  predictionCount: predicitons.length,
-                  onPrediction: (value) {
-                    _accumulatorViewModel.onPrediction(context,
-                        predictedCoin: value);
-                  },
-                  onPreviewPrediction: () {},
-                )
-              ],
-            ),
     );
   }
 

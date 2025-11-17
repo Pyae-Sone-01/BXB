@@ -1,6 +1,8 @@
 import 'package:bxb/features/prediction/history_detail/view_model/history_detail_view_model.dart';
+import 'package:bxb/router/router.dart';
 import 'package:bxb/services/prediction/models/history_detail_model.dart';
 import 'package:bxb/utils/common/widgets/loading_widget.dart';
+import 'package:bxb/utils/common/widgets/vistory_btn_widget.dart';
 import 'package:bxb/utils/extension/num_extension.dart';
 import 'package:bxb/utils/extension/string_extension.dart';
 import 'package:bxb/utils/themes/app_resources.dart';
@@ -8,6 +10,7 @@ import 'package:flutter/material.dart';
 
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:gap/gap.dart';
+import 'package:go_router/go_router.dart';
 
 class HistoryDetailScreen extends ConsumerStatefulWidget {
   final int id;
@@ -47,6 +50,25 @@ class _HistoryDetailScreenState extends ConsumerState<HistoryDetailScreen> {
           ? const LoadingWidget()
           : Column(
               children: [
+                if (detail?.status != "pending")
+                  Padding(
+                    padding: const EdgeInsets.all(15.0),
+                    child: VistoryBtnWidget(onTap: () {
+                      if (detail?.type == "accumulator") {
+                        context.pushNamed(
+                            RouteNames.prediciton.shareAccumulatorResult,
+                            queryParameters: {
+                              "order_id": detail?.id.toString()
+                            });
+                      } else {
+                        context.pushNamed(
+                            RouteNames.prediciton.shareHandicapResult,
+                            queryParameters: {
+                              "order_id": detail?.id.toString()
+                            });
+                      }
+                    }),
+                  ),
                 Expanded(
                     child: ListView.separated(
                   padding: const EdgeInsets.symmetric(vertical: 15),

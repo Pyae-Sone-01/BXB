@@ -21,11 +21,12 @@ class FillUserInformationScreen extends ConsumerStatefulWidget {
 class _FillInformationScreenState
     extends ConsumerState<FillUserInformationScreen> {
   late final TextEditingController _nameTxtCtl;
+  late final TextEditingController _agentCodeTxtCtl;
   final _formKey = GlobalKey<FormState>();
   @override
   void initState() {
     _nameTxtCtl = TextEditingController();
-
+    _agentCodeTxtCtl = TextEditingController();
     super.initState();
   }
 
@@ -33,6 +34,7 @@ class _FillInformationScreenState
   void dispose() {
     super.dispose();
     _nameTxtCtl.dispose();
+    _agentCodeTxtCtl.dispose();
   }
 
   _register() {
@@ -40,6 +42,7 @@ class _FillInformationScreenState
       ref.read(authViewModelImplProvider.notifier).register(
             context,
             name: _nameTxtCtl.text,
+            agentCode: _agentCodeTxtCtl.text,
           );
     }
   }
@@ -113,19 +116,25 @@ class _FillInformationScreenState
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        const Text(
-                          'သင့်အမည်',
-                          style: TextStyle(
+                        TxtInputWidget(
+                          name: "သင့်အမည်",
+                          hintText: "သင့်အမည်ထည့်ပါ",
+                          controller: _nameTxtCtl,
+                          validator: nameValidator,
+                          labelStyle: const TextStyle(
                             color: Colors.white,
                             fontSize: 16,
                           ),
                         ),
-                        const SizedBox(height: 10),
+                        const Gap(15),
                         TxtInputWidget(
-                          name: "",
-                          hintText: "သင့်အမည်ထည့်ပါ",
-                          controller: _nameTxtCtl,
-                          validator: nameValidator,
+                          name: "Agent Code",
+                          hintText: "Agent Code ထည့်သွင်းရန်",
+                          controller: _agentCodeTxtCtl,
+                          labelStyle: const TextStyle(
+                            color: Colors.white,
+                            fontSize: 16,
+                          ),
                         )
                       ],
                     ),

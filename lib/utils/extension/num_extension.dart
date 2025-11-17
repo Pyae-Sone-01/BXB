@@ -25,6 +25,7 @@ extension NumSignExtension on num {
     if (parts.length > 1 && int.parse(parts[1]) != 0) {
       return '$integerPart.${parts[1]} Ks';
     }
+
     return '$integerPart Ks';
   }
 }

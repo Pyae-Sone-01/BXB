@@ -27,7 +27,7 @@ class FixtureRepositoryImpl implements FixtureRepository {
   Future<BaseResponse<List<List<LeagueFixturesModel>>>> getAccumulatorFixture(
       Map<String, dynamic> payload) {
     return _apiService.get(
-      ApiRoute.fixture.getHandicapFixture,
+      ApiRoute.fixture.getAccumulatorFixture,
       queryParameters: payload,
       fromJson: (data) => (data as List)
           .map<List<LeagueFixturesModel>>(

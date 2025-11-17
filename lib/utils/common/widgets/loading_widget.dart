@@ -3,15 +3,17 @@ import 'package:bxb/utils/themes/app_resources.dart';
 import 'package:flutter/material.dart';
 
 class LoadingWidget extends StatelessWidget {
-  const LoadingWidget({super.key});
+  final double width;
+  final double height;
+  const LoadingWidget({super.key, this.width = 70, this.height = 70});
 
   @override
   Widget build(BuildContext context) {
     return Center(
       child: CustomImageWidget(
         AppResources.assets.gifs.loading,
-        width: 70,
-        height: 70,
+        width: width,
+        height: height,
       ),
     );
   }

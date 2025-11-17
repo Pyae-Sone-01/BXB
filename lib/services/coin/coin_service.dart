@@ -11,9 +11,10 @@ abstract class CoinService {
   Future<ResultModel<List<BankInfoForDepositModel>>> bankInfoForDeposit();
   Future<ResultModel<List<BankInfoForWithdrawModel>>> bankInfoForWithdraw();
   Future<ResultModel<List<CoinHistoryModel>>> getCoinHistores(
-      {bool? isGetFromCache});
+      {bool? isGetFromCache, required Map<String, dynamic> payload});
   Future<ResultModel> depositCoin(Map<String, dynamic> payload);
   Future<ResultModel> withdraw(Map<String, dynamic> payload);
+  Future<ResultModel> depositBffCoin(Map<String, dynamic> payload);
 }
 
 class CoinServiceImpl implements CoinService {
@@ -77,10 +78,10 @@ class CoinServiceImpl implements CoinService {
 
   @override
   Future<ResultModel<List<CoinHistoryModel>>> getCoinHistores(
-      {bool? isGetFromCache}) async {
+      {bool? isGetFromCache, required Map<String, dynamic> payload}) async {
     try {
       final res = await _coinRepository.getCoinHistores(
-          isGetFromCache: isGetFromCache ?? false);
+          payload: payload, isGetFromCache: isGetFromCache ?? false);
       if (res.success && (res.data != null && res.data!.isNotEmpty)) {
         return ResultModel.success(res.data, msg: res.msg);
       }
@@ -108,6 +109,20 @@ class CoinServiceImpl implements CoinService {
   Future<ResultModel> withdraw(Map<String, dynamic> payload) async {
     try {
       final res = await _coinRepository.widthdraw(payload);
+
+      if (res.success) {
+        return ResultModel.success("", msg: res.msg);
+      }
+      throw res.msg;
+    } catch (e) {
+      return ResultModel.failure(e.toString());
+    }
+  }
+
+  @override
+  Future<ResultModel> depositBffCoin(Map<String, dynamic> payload) async {
+    try {
+      final res = await _coinRepository.depositBffCoin(payload);
 
       if (res.success) {
         return ResultModel.success("", msg: res.msg);

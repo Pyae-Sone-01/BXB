@@ -13,7 +13,11 @@ import 'package:go_router/go_router.dart';
 
 class LoginWithScreen extends StatefulWidget {
   final bool isLoginWithPhone;
-  const LoginWithScreen({super.key, required this.isLoginWithPhone});
+  final bool isLoginWithAtom;
+  const LoginWithScreen(
+      {super.key,
+      required this.isLoginWithPhone,
+      required this.isLoginWithAtom});
 
   @override
   State<LoginWithScreen> createState() => _LoginWithScreenState();
@@ -37,9 +41,15 @@ class _LoginWithScreenState extends State<LoginWithScreen> {
 
   _requestOtp(WidgetRef ref) {
     if (_formKey.currentState!.validate()) {
-      ref.read(authViewModelImplProvider.notifier).getOtp(context,
-          emailOrPhone: _emailOrPhoneTxtCtl.text,
-          type: widget.isLoginWithPhone ? "phone" : "email");
+      if (widget.isLoginWithAtom) {
+        ref
+            .read(authViewModelImplProvider.notifier)
+            .checkAtomPhone(context, phone: _emailOrPhoneTxtCtl.text);
+      } else {
+        ref.read(authViewModelImplProvider.notifier).getOtp(context,
+            emailOrPhone: _emailOrPhoneTxtCtl.text,
+            type: widget.isLoginWithPhone ? "phone" : "email");
+      }
     }
   }
 
@@ -87,24 +97,24 @@ class _LoginWithScreenState extends State<LoginWithScreen> {
                   ),
                   const SizedBox(height: 24),
                   Text(
-                    widget.isLoginWithPhone
-                        ? 'ဖုန်းနံပါတ်ထည့်ပါ'
-                        : "အီးမေးလ်ထည့်ပါ",
+                    "${widget.isLoginWithAtom ? 'ATOM ' : ''}${widget.isLoginWithPhone ? 'ဖုန်းနံပါတ်ထည့်ပါ' : 'အီးမေးလ်ထည့်ပါ'}",
                     style: const TextStyle(
                       color: Colors.white,
                       fontSize: 18,
                       fontWeight: FontWeight.w700,
                     ),
                   ),
-                  const SizedBox(height: 12),
-                  Text(
-                    'သင့်${widget.isLoginWithPhone ? "ဖုန်းနံပါတ်" : "အီးမေးလ်လိပ်စာ"}ကို ထည့်ပေးပါ။ OTP ကုဒ်ပေးပို့ပါမည်။',
-                    textAlign: TextAlign.center,
-                    style: const TextStyle(
-                      color: Colors.white,
-                      fontSize: 13,
+                  if (!widget.isLoginWithAtom) ...[
+                    const SizedBox(height: 12),
+                    Text(
+                      'သင့်${widget.isLoginWithPhone ? "ဖုန်းနံပါတ်" : "အီးမေးလ်လိပ်စာ"}ကို ထည့်ပေးပါ။ OTP ကုဒ်ပေးပို့ပါမည်။',
+                      textAlign: TextAlign.center,
+                      style: const TextStyle(
+                        color: Colors.white,
+                        fontSize: 13,
+                      ),
                     ),
-                  ),
+                  ],
                   const SizedBox(height: 32),
                   // Phone input
                   Padding(
@@ -171,12 +181,13 @@ class _LoginWithScreenState extends State<LoginWithScreen> {
                         child: SizedBox(
                           width: double.infinity,
                           child: ElevatedButton.icon(
-                            label: const Text(
-                              'OTP ပေးပို့ပါ',
+                            label: Text(
+                              !widget.isLoginWithAtom
+                                  ? "OTP ပေးပို့မည်"
+                                  : 'ဆက်လက်လုပ်ဆောင်မည်',
                               style: TextStyle(
                                 color: Color(0xFF1846C7),
                                 fontWeight: FontWeight.bold,
-                                fontSize: 16,
                               ),
                             ),
                             style: ElevatedButton.styleFrom(

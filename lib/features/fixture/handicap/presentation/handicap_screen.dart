@@ -9,6 +9,8 @@ import 'package:bxb/utils/themes/app_resources.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../../../../utils/common/widgets/empty_error_widget.dart';
+
 class HandicapScreen extends ConsumerStatefulWidget {
   const HandicapScreen({super.key});
 
@@ -32,6 +34,8 @@ class _HandicapScreenState extends ConsumerState<HandicapScreen> {
   Widget build(BuildContext context) {
     final isLoading =
         ref.watch(handicapViewModelImplProvider.select((s) => s.isLoading));
+    final isEmpty =
+        ref.watch(handicapViewModelImplProvider.select((s) => s.isEmpty));
     final fixtures =
         ref.watch(handicapViewModelImplProvider.select((s) => s.fixtures));
     final remainingBalance = ref
@@ -73,38 +77,43 @@ class _HandicapScreenState extends ConsumerState<HandicapScreen> {
       ),
       body: isLoading
           ? const LoadingWidget()
-          : Column(
-              children: [
-                Expanded(
-                  child: ListView.builder(
-                    padding: const EdgeInsets.all(16),
-                    itemCount: flatFixtures.length,
-                    itemBuilder: (context, index) {
-                      final fixture = flatFixtures[index];
-                      return FixtureGroupItemWidget(
-                        fixture: fixture,
-                        predictions: prediction != null ? [prediction] : [],
-                        onPrediction: ({required data}) {
-                          ref
-                              .read(handicapViewModelImplProvider.notifier)
-                              .selectPrediction(prediction: data);
+          : isEmpty
+              ? EmptyErrorWidget(
+                  msg: "လတ်တလောတွင် လောင်းရန် ပွဲစဉ်များ မရှိသေးပါ")
+              : Column(
+                  children: [
+                    Expanded(
+                      child: ListView.builder(
+                        padding: const EdgeInsets.all(16),
+                        itemCount: flatFixtures.length,
+                        itemBuilder: (context, index) {
+                          final fixture = flatFixtures[index];
+                          return FixtureGroupItemWidget(
+                            fixture: fixture,
+                            predictions: prediction != null ? [prediction] : [],
+                            onPrediction: ({required data}) {
+                              ref
+                                  .read(handicapViewModelImplProvider.notifier)
+                                  .selectPrediction(prediction: data);
+                            },
+                          );
                         },
-                      );
-                    },
-                  ),
+                      ),
+                    ),
+                    MaxPayoutWidget(
+                      minAmt: "၁၀၀၀",
+                      shouldChangeBtnColor: prediction != null,
+                      remainingBalance: remainingBalance.toString(),
+                      onPrediction: (value) {
+                        _handicapViewModel.onPrediction(context,
+                            predictedCoin: value);
+                      },
+                      onPreviewPrediction: () {
+                        _handicapViewModel.showPreviewPrediction(context);
+                      },
+                    ),
+                  ],
                 ),
-                MaxPayoutWidget(
-                  remainingBalance: remainingBalance.toString(),
-                  onPrediction: (value) {
-                    _handicapViewModel.onPrediction(context,
-                        predictedCoin: value);
-                  },
-                  onPreviewPrediction: () {
-                    _handicapViewModel.showPreviewPrediction(context);
-                  },
-                ),
-              ],
-            ),
     );
   }
 }

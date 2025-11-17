@@ -36,14 +36,18 @@ class _AddAgentCodeDialogState extends State<_AddAgentCodeDialog> {
                 name: '',
                 controller: _pinController,
                 obscureText: true,
-                keyboardType: TextInputType.number,
                 maxLines: 1,
                 hintText: 'Agent Code',
                 style: const TextStyle(
                     fontSize: 16, letterSpacing: 4, color: Colors.black),
                 boxBorder: Border.all(color: Colors.grey),
                 borderRadius: 8,
-                validator: pinValidator,
+                validator: (value) {
+                  if (value == null || value.trim().isEmpty) {
+                    return 'Agent code cannot be empty';
+                  }
+                  return null;
+                },
                 hintStyle: const TextStyle(
                     color: Colors.grey, fontSize: 13, letterSpacing: 1),
               ),
@@ -72,7 +76,6 @@ class _AddAgentCodeDialogState extends State<_AddAgentCodeDialog> {
                       ),
                       onPressed: () {
                         if (_formKey.currentState!.validate()) {
-                          Navigator.of(context).pop();
                           widget.onConfirm(_pinController.text);
                         }
                       },

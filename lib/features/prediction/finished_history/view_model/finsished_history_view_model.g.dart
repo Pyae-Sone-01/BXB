@@ -7,7 +7,7 @@ part of 'finsished_history_view_model.dart';
 // **************************************************************************
 
 String _$finishedHistoryViewModelHash() =>
-    r'185192d38e9da75461658e0ebaca97b412999e52';
+    r'50359ec2cc4ba3171d37599e16dee390c703fed1';
 
 /// See also [FinishedHistoryViewModel].
 @ProviderFor(FinishedHistoryViewModel)

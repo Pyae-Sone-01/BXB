@@ -3,11 +3,11 @@ part of '../dialog_manager.dart';
 class _AutoCloseResultDialog extends StatefulWidget {
   final bool isSuccess;
   final String description;
-
-  const _AutoCloseResultDialog({
-    required this.isSuccess,
-    required this.description,
-  });
+  final VoidCallback onCompleteCallback;
+  const _AutoCloseResultDialog(
+      {required this.isSuccess,
+      required this.description,
+      required this.onCompleteCallback});
 
   @override
   State<_AutoCloseResultDialog> createState() => _AutoCloseResultDialogState();
@@ -59,6 +59,7 @@ class _AutoCloseResultDialogState extends State<_AutoCloseResultDialog> {
         FocusManager.instance.primaryFocus?.unfocus();
       });
       Navigator.of(context).pop();
+      widget.onCompleteCallback();
     }
   }
 

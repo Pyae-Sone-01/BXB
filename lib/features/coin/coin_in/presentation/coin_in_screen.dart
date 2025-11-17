@@ -21,6 +21,9 @@ class CoinInScreen extends ConsumerStatefulWidget {
 
 class _CoinInScreenState extends ConsumerState<CoinInScreen> {
   late final CoinInViewModel _viewModel;
+
+  final TextEditingController amountController = TextEditingController();
+  final TextEditingController txnIdController = TextEditingController();
   @override
   void initState() {
     super.initState();
@@ -30,8 +33,6 @@ class _CoinInScreenState extends ConsumerState<CoinInScreen> {
     });
   }
 
-  final TextEditingController amountController = TextEditingController();
-  final TextEditingController txnIdController = TextEditingController();
   final _formKey = GlobalKey<FormState>();
 
   _submit() {

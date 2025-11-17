@@ -27,7 +27,7 @@ class FixtureServiceImpl implements FixtureService {
       Map<String, dynamic> payload) async {
     try {
       final res = await _fixtureRepository.getAccumulatorFixture(payload);
-      if (res.success && res.data != null && res.data!.isNotEmpty) {
+      if (res.success && res.data != null) {
         return ResultModel.success(res.data, msg: res.msg);
       }
       throw res.msg;
@@ -54,7 +54,7 @@ class FixtureServiceImpl implements FixtureService {
       Map<String, dynamic> payload) async {
     try {
       final res = await _fixtureRepository.getHandicapFixture(payload);
-      if (res.success && res.data != null && res.data!.isNotEmpty) {
+      if (res.success && res.data != null) {
         return ResultModel.success(res.data, msg: res.msg);
       }
       throw res.msg;

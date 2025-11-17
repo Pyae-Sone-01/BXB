@@ -1,3 +1,4 @@
+import 'package:bxb/utils/extension/string_extension.dart';
 import 'package:bxb/utils/themes/app_resources.dart';
 import 'package:flutter/material.dart';
 import 'package:gap/gap.dart';
@@ -7,30 +8,68 @@ class MaxPayoutWidget extends StatefulWidget {
   final int? predictionCount;
   final void Function(num) onPrediction;
   final VoidCallback onPreviewPrediction;
-  const MaxPayoutWidget({
-    super.key,
-    required this.remainingBalance,
-    this.predictionCount,
-    required this.onPrediction,
-    required this.onPreviewPrediction,
-  });
+  final String minAmt;
+  final bool shouldChangeBtnColor;
+  const MaxPayoutWidget(
+      {super.key,
+      required this.remainingBalance,
+      this.predictionCount,
+      required this.onPrediction,
+      required this.onPreviewPrediction,
+      required this.minAmt,
+      required this.shouldChangeBtnColor});
 
   @override
   State<MaxPayoutWidget> createState() => _MaxPayoutWidgetState();
 }
 
-class _MaxPayoutWidgetState extends State<MaxPayoutWidget> {
+class _MaxPayoutWidgetState extends State<MaxPayoutWidget>
+    with SingleTickerProviderStateMixin {
   late final TextEditingController _controller;
+  late AnimationController _animationController;
+  late Animation<double> _shakeAnimation;
+  int? _previousPredictionCount;
 
   @override
   void initState() {
     super.initState();
     _controller = TextEditingController();
+    _previousPredictionCount = widget.predictionCount;
+
+    // Initialize animation controller for shake effect
+    _animationController = AnimationController(
+      duration: const Duration(milliseconds: 600),
+      vsync: this,
+    );
+
+    // Create shake animation that oscillates between -1.0 and 1.0
+    _shakeAnimation = Tween<double>(
+      begin: 0.0,
+      end: 1.0,
+    ).animate(CurvedAnimation(
+      parent: _animationController,
+      curve: Curves.elasticOut,
+    ));
+  }
+
+  @override
+  void didUpdateWidget(MaxPayoutWidget oldWidget) {
+    super.didUpdateWidget(oldWidget);
+
+    // Check if predictionCount changed
+    if (widget.predictionCount != _previousPredictionCount) {
+      _previousPredictionCount = widget.predictionCount;
+
+      // Trigger shake animation
+      _animationController.reset();
+      _animationController.forward();
+    }
   }
 
   @override
   void dispose() {
     _controller.dispose();
+    _animationController.dispose();
     super.dispose();
   }
 
@@ -68,7 +107,7 @@ class _MaxPayoutWidgetState extends State<MaxPayoutWidget> {
             ),
             const Gap(4),
             Text(
-              'အနည်းဆုံး ၁၀၀၀ ကျပ်မှ စတင်ထားရပါမည်',
+              'အနည်းဆုံး ${widget.minAmt} ကျပ်မှ စတင်ကစားရပါမည်',
               style: TextStyle(
                 fontWeight: FontWeight.w600,
                 color: AppResources.colors.blue600,
@@ -80,20 +119,46 @@ class _MaxPayoutWidgetState extends State<MaxPayoutWidget> {
               children: [
                 GestureDetector(
                   onTap: widget.onPreviewPrediction,
-                  child: Container(
-                    width: 40,
-                    height: 40,
-                    decoration: BoxDecoration(
-                      shape: BoxShape.circle,
-                      border: Border.all(
-                          color: AppResources.colors.blue600, width: 1.5),
-                    ),
-                    child: Center(
-                      child: widget.predictionCount != null
-                          ? Text(widget.predictionCount.toString())
-                          : Icon(Icons.remove_red_eye,
-                              color: AppResources.colors.blue600, size: 20),
-                    ),
+                  child: AnimatedBuilder(
+                    animation: _shakeAnimation,
+                    builder: (context, child) {
+                      return Transform.translate(
+                        // Create horizontal shake effect
+                        offset: Offset(
+                          _shakeAnimation.value *
+                              ((_animationController.value * 4) % 1 < 0.5
+                                  ? -3.0
+                                  : 3.0),
+                          0,
+                        ),
+                        child: Container(
+                          width: 40,
+                          height: 40,
+                          decoration: BoxDecoration(
+                            shape: BoxShape.circle,
+                            border: Border.all(
+                              color: AppResources.colors.blue600,
+                              width: 1.5,
+                            ),
+                          ),
+                          child: Center(
+                            child: widget.predictionCount != null
+                                ? Text(
+                                    widget.predictionCount.toString(),
+                                    style: TextStyle(
+                                      color: AppResources.colors.blue600,
+                                      fontWeight: FontWeight.w600,
+                                    ),
+                                  )
+                                : Icon(
+                                    Icons.remove_red_eye,
+                                    color: AppResources.colors.blue600,
+                                    size: 20,
+                                  ),
+                          ),
+                        ),
+                      );
+                    },
                   ),
                 ),
                 const Gap(5),
@@ -134,7 +199,9 @@ class _MaxPayoutWidgetState extends State<MaxPayoutWidget> {
                     height: 40,
                     padding: const EdgeInsets.symmetric(horizontal: 15),
                     decoration: BoxDecoration(
-                      color: Color(0xFFF3F5F9),
+                      color: widget.shouldChangeBtnColor
+                          ? AppResources.colors.blue700
+                          : Color(0xFFF3F5F9),
                       borderRadius: BorderRadius.circular(24),
                     ),
                     child: Center(
@@ -142,7 +209,9 @@ class _MaxPayoutWidgetState extends State<MaxPayoutWidget> {
                         'လောင်းမည်',
                         style: TextStyle(
                           fontWeight: FontWeight.w900,
-                          color: AppResources.colors.neutral800,
+                          color: widget.shouldChangeBtnColor
+                              ? Colors.white
+                              : AppResources.colors.neutral800,
                           fontSize: 12,
                         ),
                       ),
@@ -153,7 +222,7 @@ class _MaxPayoutWidgetState extends State<MaxPayoutWidget> {
             ),
             const Gap(10),
             Text(
-              'လက်ကျန်ငွေ: ${widget.remainingBalance}',
+              'လက်ကျန်ငွေ: ${widget.remainingBalance.toFormattedPrice()}',
               style: TextStyle(
                 fontWeight: FontWeight.w600,
                 color: AppResources.colors.neutral800,

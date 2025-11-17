@@ -1,14 +1,16 @@
 class PredictionFixtureModel {
   final int fixtureId;
-  final int handicapOddId;
+  int oddId;
   final String predictedSide;
   final String predictionType;
+  final String? matchDateAndTime;
 
-  PredictionFixtureModel({
-    required this.fixtureId,
-    required this.handicapOddId,
-    required this.predictedSide,
-  }) : predictionType = (predictedSide == 'home' || predictedSide == "away")
+  PredictionFixtureModel(
+      {required this.fixtureId,
+      required this.oddId,
+      required this.predictedSide,
+      required this.matchDateAndTime})
+      : predictionType = (predictedSide == 'home' || predictedSide == "away")
             ? "body"
             : "goal_total";
 }

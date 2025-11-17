@@ -1,6 +1,9 @@
 import 'package:bxb/services/coin/coin_service.dart';
 
 import 'package:bxb/services/coin/providers/coin_service_provider.dart';
+import 'package:bxb/services/user/models/user_model.dart';
+import 'package:bxb/services/user/providers/user_service_provider.dart';
+import 'package:bxb/services/user/user_service.dart';
 import 'package:flutter/widgets.dart';
 import 'package:go_router/go_router.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
@@ -10,7 +13,7 @@ import '../../../../utils/common/dialog_manager/dialog_manager.dart';
 part 'coin_out_view_model.g.dart';
 
 abstract class CoinOutViewModel {
-  void initializeData();
+  void initializeData(BuildContext context);
   void selectPayment(int index);
 
   void onSubmit(BuildContext context,
@@ -26,25 +29,27 @@ class CoinInState {
 
   final List<BankInfoForWithdrawModel> bankInfos;
   final num myCoins;
+  final UserModel? userData;
 
-  CoinInState({
-    this.isLoading = false,
-    this.selectedPayment = -1,
-    this.bankInfos = const [],
-    this.myCoins = 0,
-  });
+  CoinInState(
+      {this.isLoading = false,
+      this.selectedPayment = -1,
+      this.bankInfos = const [],
+      this.myCoins = 0,
+      this.userData});
 
-  CoinInState copyWith({
-    bool? isLoading,
-    int? selectedPayment,
-    List<BankInfoForWithdrawModel>? bankInfos,
-    num? myCoins,
-  }) {
+  CoinInState copyWith(
+      {bool? isLoading,
+      int? selectedPayment,
+      List<BankInfoForWithdrawModel>? bankInfos,
+      num? myCoins,
+      UserModel? userData}) {
     return CoinInState(
       isLoading: isLoading ?? this.isLoading,
       selectedPayment: selectedPayment ?? this.selectedPayment,
       bankInfos: bankInfos ?? this.bankInfos,
       myCoins: myCoins ?? this.myCoins,
+      userData: userData ?? this.userData,
     );
   }
 }
@@ -53,6 +58,7 @@ class CoinInState {
 class CoinOutViewModelImpl extends _$CoinOutViewModelImpl
     implements CoinOutViewModel {
   late final CoinService _coinService;
+  late final UserService _userService = ref.read(userServiceProvider);
 
   @override
   CoinInState build() {
@@ -61,11 +67,12 @@ class CoinOutViewModelImpl extends _$CoinOutViewModelImpl
   }
 
   @override
-  void initializeData() async {
+  void initializeData(BuildContext context) async {
     state = state.copyWith(isLoading: true);
     final results = await Future.wait([
       _coinService.myCoin(),
       _coinService.bankInfoForWithdraw(),
+      _userService.me()
     ]);
     final myCoinResult = results[0];
     final bankInfoResult = results[1];
@@ -77,6 +84,15 @@ class CoinOutViewModelImpl extends _$CoinOutViewModelImpl
           ? bankInfoResult.data as List<BankInfoForWithdrawModel>?
           : null,
     );
+
+    final userResult = results[2];
+    final userData = userResult.data as UserModel?;
+    state = state.copyWith(userData: userData);
+    if (userResult.isSuccess && !(userData?.updatedPin ?? false)) {
+      DialogManger.showSetPinAlert(
+        context,
+      );
+    }
   }
 
   @override

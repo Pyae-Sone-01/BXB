@@ -13,6 +13,10 @@ abstract class AuthRepository {
   Future<BaseResponse<AuthResponseModel>> register(
       Map<String, dynamic> payload);
 
+  Future<BaseResponse<bool>> checkAtomPhone(Map<String, dynamic> payload);
+  Future<BaseResponse> registerWithAtom(Map<String, dynamic> payload);
+  Future<BaseResponse<AuthResponseModel>> loginWithAtom(
+      Map<String, dynamic> payload);
   void saveToken(String token);
   void removeToken();
   bool hasToken();
@@ -24,9 +28,6 @@ class AuthRepositoryImp implements AuthRepository {
 
   @override
   Future<BaseResponse<dynamic>> loginWithBff(Map<String, dynamic> payload) {
-    // {
-    //     "authKey": "dNuVYI2KKbu_5ALCp0rkAWo0Vmt6b1hPdDVqdHg5bzFpbWg3QVRKbVNuanIrdzBnNHgxdWJVZUNCYUo0S0U1YzVMYVd6WTdMeUVLN1kxdHdQNGt6OUN0K25SSWcwS1pBby9XTUZhSERXcnZwb1BTN1B5RVcrc3N6ZEtVPQ=="
-    // }
     return _apiService.post(
       ApiRoute.auth.loginWithBff,
       body: payload,
@@ -36,10 +37,6 @@ class AuthRepositoryImp implements AuthRepository {
 
   @override
   Future<BaseResponse> getOtp(Map<String, dynamic> payload) {
-    // {
-    //     "phoneOrEmail": "0997348343",
-    //     "type": "email"
-    // }
     return _apiService.post(
       ApiRoute.auth.getOtp,
       body: payload,
@@ -50,13 +47,6 @@ class AuthRepositoryImp implements AuthRepository {
   @override
   Future<BaseResponse<AuthResponseModel>> verifyOtp(
       Map<String, dynamic> payload) {
-    ///payload example
-    //{
-    //     "phoneOrEmail": "0997348343",
-    //     "otp": "1234",
-    //     "type": "phone"
-    // }
-
     return _apiService.post(
       ApiRoute.auth.verifyOtp,
       body: payload,
@@ -67,14 +57,6 @@ class AuthRepositoryImp implements AuthRepository {
   @override
   Future<BaseResponse<AuthResponseModel>> register(
       Map<String, dynamic> payload) {
-//     {
-//     "name": "New user",
-//     "phoneOrEmail": "0997348343",
-//     "otp": "1234",
-//     "type": "phone",
-//     "agentCode": ""
-// }
-
     return _apiService.post(
       ApiRoute.auth.register,
       body: payload,
@@ -97,5 +79,33 @@ class AuthRepositoryImp implements AuthRepository {
     final token = LocalStorageServices.getData(LocalStorageKey.token);
 
     return token.isNotEmpty;
+  }
+
+  @override
+  Future<BaseResponse<bool>> checkAtomPhone(Map<String, dynamic> payload) {
+    return _apiService.post(
+      ApiRoute.auth.checkAtomPhone,
+      body: payload,
+      fromJson: (data) => data["can_register"],
+    );
+  }
+
+  @override
+  Future<BaseResponse> registerWithAtom(Map<String, dynamic> payload) {
+    return _apiService.post(
+      ApiRoute.auth.registerWithAtom,
+      body: payload,
+      fromJson: (data) => {},
+    );
+  }
+
+  @override
+  Future<BaseResponse<AuthResponseModel>> loginWithAtom(
+      Map<String, dynamic> payload) {
+    return _apiService.post(
+      ApiRoute.auth.loginWithAtom,
+      body: payload,
+      fromJson: (data) => AuthResponseModel.fromJson(data),
+    );
   }
 }

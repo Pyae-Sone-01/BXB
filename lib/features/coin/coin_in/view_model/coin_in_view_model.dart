@@ -60,9 +60,11 @@ class CoinInViewModelImpl extends _$CoinInViewModelImpl
   Future<void> _getBankInfo() async {
     state = state.copyWith(isLoading: true);
     final res = await _coinService.bankInfoForDeposit();
-    state = state.copyWith(isLoading: false);
+    state = state.copyWith(
+      isLoading: false,
+    );
     if (res.isSuccess && res.data != null) {
-      state = state.copyWith(bankInfos: res.data!);
+      state = state.copyWith(bankInfos: res.data!, selectedPayment: 0);
     }
   }
 

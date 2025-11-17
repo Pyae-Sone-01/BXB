@@ -25,19 +25,28 @@ class UserRepositoryImpl implements UserRepository {
 
   @override
   Future<BaseResponse> setupWithdrawPin(Map<String, dynamic> payload) {
-    // TODO: implement setupWithdrawPin
-    throw UnimplementedError();
+    return _apiService.post(
+      ApiRoute.user.setUpWidthdrawPin,
+      body: payload,
+      fromJson: (data) => {},
+    );
   }
 
   @override
   Future<BaseResponse> updateAgent(Map<String, dynamic> payload) {
-    // TODO: implement updateAgent
-    throw UnimplementedError();
+    return _apiService.put(
+      ApiRoute.user.updateAgent,
+      body: payload,
+      fromJson: (data) => {},
+    );
   }
 
   @override
   Future<BaseResponse> updateWithdrawPin(Map<String, dynamic> payload) {
-    // TODO: implement updateWithdrawPin
-    throw UnimplementedError();
+    return _apiService.put(
+      ApiRoute.user.updateWidthdrawPin,
+      body: payload,
+      fromJson: (data) => {},
+    );
   }
 }

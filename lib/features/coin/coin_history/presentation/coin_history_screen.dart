@@ -1,5 +1,7 @@
 import 'package:bxb/features/coin/coin_history/presentation/_widget/coin_history_item_widget.dart';
 import 'package:bxb/features/coin/coin_history/view_model/coin_history_view_model.dart';
+import 'package:bxb/utils/common/dialog_manager/dialog_manager.dart';
+import 'package:bxb/utils/common/widgets/empty_error_widget.dart';
 import 'package:bxb/utils/common/widgets/loading_widget.dart';
 import 'package:flutter/material.dart';
 
@@ -32,6 +34,20 @@ class _CoinHistoryScreenState extends ConsumerState<CoinHistoryScreen> {
       appBar: AppBar(
         centerTitle: false,
         title: const Text("ငွေစာရင်း"),
+        actions: [
+          IconButton(
+              onPressed: () {
+                DialogManger.showCoinHistoryFilter(
+                  context,
+                  onApply: (startDate, endDate) {
+                    ref
+                        .read(coinHistoryViewModelProvider.notifier)
+                        .applyFilter(startDate: startDate, endDate: endDate);
+                  },
+                );
+              },
+              icon: Icon(Icons.sort))
+        ],
       ),
       body: RefreshIndicator.adaptive(
         onRefresh: () async {
@@ -39,15 +55,17 @@ class _CoinHistoryScreenState extends ConsumerState<CoinHistoryScreen> {
         },
         child: isLoading
             ? const LoadingWidget()
-            : ListView.builder(
-                itemCount: histories.length,
-                itemBuilder: (context, index) {
-                  final item = histories[index];
-                  return CoinHistoryItemWidget(
-                    data: item,
-                  );
-                },
-              ),
+            : histories.isEmpty
+                ? const EmptyErrorWidget(msg: "ငွေစာရင်းများ မရှိပါ")
+                : ListView.builder(
+                    itemCount: histories.length,
+                    itemBuilder: (context, index) {
+                      final item = histories[index];
+                      return CoinHistoryItemWidget(
+                        data: item,
+                      );
+                    },
+                  ),
       ),
     );
   }

@@ -109,7 +109,9 @@ class _TxtInputWidgetState extends State<TxtInputWidget> {
                     widget.keyboardType == TextInputType.visiblePassword &&
                         _obscureText,
                 validator: (value) {
-                  final String? error = widget.validator!(value);
+                  final String? error = widget.validator != null
+                      ? widget.validator!(value)
+                      : null;
                   setState(() {
                     this.error = error ?? "";
                   });

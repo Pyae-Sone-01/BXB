@@ -1,3 +1,4 @@
+import 'package:bxb/services/prediction/models/accumulator_estimate_wining_res_model.dart';
 import 'package:bxb/services/prediction/models/estimate_fixture_item_model.dart';
 
 import 'package:bxb/services/prediction/prediction_repository.dart';
@@ -14,7 +15,12 @@ abstract class PredictionService {
   Future<ResultModel<HistoryDetailModel>> getHistoryDetail({required int id});
   Future<ResultModel<EstimateWiningFixtureItemModel>> getHandicapEstimateWining(
       Map<String, dynamic> payload);
+  Future<ResultModel<AccumulatorEstimateWinningResModel>>
+      getAccumulatorEstimateWining(Map<String, dynamic> payload);
   Future<ResultModel> handicapPrediction(Map<String, dynamic> payload);
+  Future<ResultModel> accumulatorPrediction(Map<String, dynamic> payload);
+  Future<ResultModel> getShareData(
+      {required bool isAccumulator, required Map<String, dynamic> payload});
 }
 
 class PredictionServiceImpl implements PredictionService {
@@ -84,7 +90,53 @@ class PredictionServiceImpl implements PredictionService {
     try {
       final res = await _predictionRepository.handicapPrediction(payload);
 
-      if (res.success && res.data == true) {
+      if (res.success && res.data == true && res.data.runtimeType == bool) {
+        return ResultModel.success(res.data, msg: res.msg);
+      }
+      throw res.msg;
+    } catch (e) {
+      return ResultModel.failure(e.toString());
+    }
+  }
+
+  @override
+  Future<ResultModel<AccumulatorEstimateWinningResModel>>
+      getAccumulatorEstimateWining(Map<String, dynamic> payload) async {
+    try {
+      final res =
+          await _predictionRepository.getAccumulatorEstimateWining(payload);
+      if (res.success && res.data != null) {
+        return ResultModel.success(res.data, msg: res.msg);
+      }
+      throw res.msg;
+    } catch (e) {
+      return ResultModel.failure(e.toString());
+    }
+  }
+
+  @override
+  Future<ResultModel> accumulatorPrediction(
+      Map<String, dynamic> payload) async {
+    try {
+      final res = await _predictionRepository.accumulatorPrediction(payload);
+      if (res.success && res.data != null && res.data.runtimeType == bool) {
+        return ResultModel.success(res.data, msg: res.msg);
+      }
+      throw res.msg;
+    } catch (e) {
+      return ResultModel.failure(e.toString());
+    }
+  }
+
+  @override
+  Future<ResultModel> getShareData(
+      {required bool isAccumulator,
+      required Map<String, dynamic> payload}) async {
+    try {
+      final res = isAccumulator
+          ? await _predictionRepository.getAccumulatorShareData(payload)
+          : await _predictionRepository.getHandicapShareData(payload);
+      if (res.success && res.data != null) {
         return ResultModel.success(res.data, msg: res.msg);
       }
       throw res.msg;

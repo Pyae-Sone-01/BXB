@@ -19,6 +19,21 @@ abstract class AuthViewModel {
   Future<void> register(
     BuildContext context, {
     required String name,
+    required String agentCode,
+  });
+  Future<void> loginWithAtom(
+    BuildContext context, {
+    required String phone,
+    required String password,
+  });
+
+  Future<void> checkAtomPhone(BuildContext context, {required String phone});
+
+  Future<void> registerWithAtom(
+    BuildContext context, {
+    required String phone,
+    required String agentCode,
+    required String name,
   });
 }
 
@@ -27,7 +42,11 @@ class AuthState {
   final String? otp;
   final String? emailOrPhone;
 
-  AuthState({this.type, this.otp, this.emailOrPhone});
+  AuthState({
+    this.type,
+    this.otp,
+    this.emailOrPhone,
+  });
 
   AuthState copyWith({
     String? type,
@@ -76,11 +95,8 @@ class AuthViewModelImpl extends _$AuthViewModelImpl implements AuthViewModel {
   }) async {
     state = state.copyWith(otp: otp);
     DialogManger.showLoading(context);
-    final res = await _authService.verifyOtp({
-      "phoneOrEmail": state.emailOrPhone,
-      "otp": "1234",
-      "type": state.type
-    });
+    final res = await _authService.verifyOtp(
+        {"phoneOrEmail": state.emailOrPhone, "otp": otp, "type": state.type});
     DialogManger.closeDialog(context);
     if (res.isSuccess) {
       ToastMsg.show(context, message: res.msg ?? "");
@@ -88,7 +104,7 @@ class AuthViewModelImpl extends _$AuthViewModelImpl implements AuthViewModel {
         context.pushNamed(RouteNames.auth.fillUserInfo);
       } else {
         // ref.invalidate(authViewModelImplProvider);
-        context.pushNamed(RouteNames.main.home);
+        context.goNamed(RouteNames.main.home);
       }
     } else {
       ToastMsg.show(context, message: res.error ?? "", isError: true);
@@ -99,6 +115,7 @@ class AuthViewModelImpl extends _$AuthViewModelImpl implements AuthViewModel {
   Future<void> register(
     BuildContext context, {
     required String name,
+    required String agentCode,
   }) async {
     DialogManger.showLoading(context);
     final res = await _authService.register({
@@ -106,13 +123,67 @@ class AuthViewModelImpl extends _$AuthViewModelImpl implements AuthViewModel {
       "phoneOrEmail": state.emailOrPhone,
       "otp": state.otp,
       "type": state.type,
-      "agentCode": ""
+      "agentCode": agentCode
     });
     DialogManger.closeDialog(context);
     if (res.isSuccess) {
       ToastMsg.show(context, message: res.msg ?? "");
       //ref.invalidate(authViewModelImplProvider);
-      context.pushNamed(RouteNames.main.home);
+      context.goNamed(RouteNames.main.home);
+    } else {
+      ToastMsg.show(context, message: res.error ?? "", isError: true);
+    }
+  }
+
+  @override
+  Future<void> loginWithAtom(BuildContext context,
+      {required String phone, required String password}) async {
+    DialogManger.showLoading(context);
+    final res = await _authService
+        .loginWithAtom({"atomPhoneNumber": phone, "password": password});
+    DialogManger.closeDialog(context);
+    if (res.isSuccess) {
+      ToastMsg.show(context, message: res.msg ?? "");
+      //ref.invalidate(authViewModelImplProvider);
+      context.goNamed(RouteNames.main.home);
+    } else {
+      ToastMsg.show(context, message: res.error ?? "", isError: true);
+    }
+  }
+
+  @override
+  Future<void> checkAtomPhone(BuildContext context,
+      {required String phone}) async {
+    DialogManger.showLoading(context);
+    final res = await _authService.checkAtomPhone({"atomPhoneNumber": phone});
+    DialogManger.closeDialog(context);
+    if (res.isSuccess) {
+      if (res.data ?? false) {
+        context.pushNamed(RouteNames.auth.register,
+            queryParameters: {"phone": phone});
+      } else {
+        context.pushNamed(RouteNames.auth.loginWithPassword,
+            queryParameters: {"phone": phone});
+      }
+    } else {
+      getOtp(context, emailOrPhone: phone, type: "phone");
+    }
+  }
+
+  @override
+  Future<void> registerWithAtom(BuildContext context,
+      {required String phone,
+      required String agentCode,
+      required String name}) async {
+    DialogManger.showLoading(context);
+    final res = await _authService.registerWithAtom(
+        {"atomPhoneNumber": phone, "name": name, "agentCode": agentCode});
+    DialogManger.closeDialog(context);
+    if (res.isSuccess) {
+      context.pop();
+      context.pop();
+      context.pushNamed(RouteNames.auth.loginWithPassword,
+          queryParameters: {"phone": phone, "msg": res.msg ?? ""});
     } else {
       ToastMsg.show(context, message: res.error ?? "", isError: true);
     }
