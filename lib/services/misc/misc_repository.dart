@@ -11,6 +11,7 @@ abstract class MiscRepository {
       Map<String, dynamic> payload);
   Future<BaseResponse<ForceUpdateResponseModel?>> checkForUpdate(
       Map<String, dynamic> payload);
+  Future<BaseResponse<bool>> checkBffIntegrationStatus();
 }
 
 class MiscRepositoryImpl implements MiscRepository {
@@ -36,5 +37,11 @@ class MiscRepositoryImpl implements MiscRepository {
     return _apiService.post(ApiRoute.misc.checkForUpdate,
         queryParameters: payload,
         fromJson: (data) => ForceUpdateResponseModel.fromJson(data));
+  }
+
+  @override
+  Future<BaseResponse<bool>> checkBffIntegrationStatus() {
+    return _apiService.get(ApiRoute.misc.bffIntegrationStatus,
+        fromJson: (data) => data as bool);
   }
 }

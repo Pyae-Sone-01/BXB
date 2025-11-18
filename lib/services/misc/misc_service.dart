@@ -10,6 +10,7 @@ abstract class MiscService {
   Future<ResultModel<List<NotificationModel>>> getNotification(
       Map<String, dynamic> payload);
   Future<ResultModel<ForceUpdateResponseModel>> checkForUpdate();
+  Future<ResultModel<bool>> checkBffIntegrationStatus();
 }
 
 class MiscServiceImpl implements MiscService {
@@ -44,6 +45,19 @@ class MiscServiceImpl implements MiscService {
     try {
       final res =
           await _miscRepository.checkForUpdate({"version": versionCode});
+      if (res.success && res.data != null) {
+        return ResultModel.success(res.data, msg: res.msg);
+      }
+      throw res.msg;
+    } catch (e) {
+      return ResultModel.failure(e.toString());
+    }
+  }
+
+  @override
+  Future<ResultModel<bool>> checkBffIntegrationStatus() async {
+    try {
+      final res = await _miscRepository.checkBffIntegrationStatus();
       if (res.success && res.data != null) {
         return ResultModel.success(res.data, msg: res.msg);
       }

@@ -20,6 +20,7 @@ import 'package:bxb/features/prediction/history_detail/presentation/history_deta
 import 'package:bxb/features/prediction/on_going_history/presentation/on_going_history_screen.dart';
 import 'package:bxb/features/prediction/share_accumulator_result/share_accumulator_result_screen.dart';
 import 'package:bxb/features/prediction/share_handicap_result/share_handicap_result_screen.dart';
+import 'package:bxb/router/custom_route_observer.dart';
 import 'package:bxb/services/misc/models/notification_model.dart';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
@@ -87,7 +88,8 @@ class _Misc {
 final GlobalKey<NavigatorState> rootNavigatorKey = GlobalKey<NavigatorState>();
 final RouteObserver<PageRoute> routeObserver = RouteObserver<PageRoute>();
 final appRouter = GoRouter(observers: [
-  routeObserver
+  routeObserver,
+  TrackingRouteObserver()
 ], routes: [
   ..._mainRoutes,
   ..._authRoutes,

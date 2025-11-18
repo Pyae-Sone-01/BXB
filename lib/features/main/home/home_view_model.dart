@@ -3,6 +3,8 @@ import 'package:bxb/router/router.dart';
 import 'package:bxb/services/auth/auth_service.dart';
 import 'package:bxb/services/auth/providers/auth_service_provider.dart';
 import 'package:bxb/services/coin/coin_service.dart';
+import 'package:bxb/services/misc/misc_service.dart';
+import 'package:bxb/services/misc/providers/misc_service_provider.dart';
 import 'package:bxb/services/user/models/user_model.dart';
 import 'package:bxb/services/user/providers/user_service_provider.dart';
 import 'package:bxb/services/user/user_service.dart';
@@ -34,12 +36,14 @@ class HomeState {
   final BffCoinModel? bffCoin;
   final UserModel? userData;
   final String language;
+  final bool bffIntegrationStatus;
 
   HomeState(
       {this.isLoading = false,
       this.myCoin,
       this.bffCoin,
       this.userData,
+      this.bffIntegrationStatus = true,
       this.language = "mm"});
 
   HomeState copyWith({
@@ -48,6 +52,7 @@ class HomeState {
     BffCoinModel? bffCoin,
     UserModel? userData,
     String? language,
+    bool? bffIntegrationStatus,
   }) {
     return HomeState(
       isLoading: isLoading ?? this.isLoading,
@@ -55,6 +60,7 @@ class HomeState {
       bffCoin: bffCoin ?? this.bffCoin,
       userData: userData ?? this.userData,
       language: language ?? this.language,
+      bffIntegrationStatus: bffIntegrationStatus ?? this.bffIntegrationStatus,
     );
   }
 }
@@ -64,6 +70,7 @@ class HomeViewModelImpl extends _$HomeViewModelImpl implements HomeViewModel {
   late final AuthService _authService = ref.read(authServiceProvider);
   late final CoinService _coinService = ref.read(coinServiceProvider);
   late final UserService _userService = ref.read(userServiceProvider);
+  late final MiscService _miscService = ref.read(miscServiceProvider);
 
   @override
   HomeState build() {
@@ -87,16 +94,21 @@ class HomeViewModelImpl extends _$HomeViewModelImpl implements HomeViewModel {
       _coinService.myCoin(),
       _coinService.getBffCoin(),
       _userService.me(),
+      _miscService.checkBffIntegrationStatus(),
     ]);
     final myCoinResult = results[0];
     final bffCoinResult = results[1];
     final userResult = results[2];
+    final checkBffIntegrationStatusResult = results[3];
     state = state.copyWith(
       isLoading: false,
       myCoin: myCoinResult.isSuccess ? myCoinResult.data as num? : null,
       bffCoin:
           bffCoinResult.isSuccess ? bffCoinResult.data as BffCoinModel? : null,
       userData: userResult.isSuccess ? userResult.data as UserModel? : null,
+      bffIntegrationStatus: checkBffIntegrationStatusResult.isSuccess
+          ? checkBffIntegrationStatusResult.data as bool
+          : null,
     );
   }
 

@@ -30,6 +30,7 @@ void main() async {
       logLevel: LogLevel
           .None // Note: Use "LogLevel.Verbose" value while testing to debug initialization issues.
       );
+
   runApp(ProviderScope(
       child: ClarityWidget(
     clarityConfig: config,

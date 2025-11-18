@@ -19,6 +19,8 @@ class __WalletInfoWidgetState extends ConsumerState<_WalletInfoWidget> {
 
     final bffCoin =
         ref.watch(homeViewModelImplProvider.select((s) => s.bffCoin));
+    final bffIntegrationStatus = ref
+        .watch(homeViewModelImplProvider.select((s) => s.bffIntegrationStatus));
     return Stack(
       alignment: AlignmentDirectional.bottomCenter,
       children: [
@@ -42,73 +44,78 @@ class __WalletInfoWidgetState extends ConsumerState<_WalletInfoWidget> {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     // Tabs
-                    Container(
-                      decoration: BoxDecoration(
-                        border: Border.all(color: AppResources.colors.blue600),
-                        borderRadius: BorderRadius.circular(8),
-                      ),
-                      child: Row(
-                        children: [
-                          Expanded(
-                            child: GestureDetector(
-                              onTap: () => setState(() => _selectedTab = 0),
-                              child: Container(
-                                decoration: BoxDecoration(
-                                  color: _selectedTab == 0
-                                      ? AppResources.colors.blue600
-                                      : Colors.transparent,
-                                  borderRadius: const BorderRadius.horizontal(
-                                      left: Radius.circular(8)),
-                                ),
-                                padding:
-                                    const EdgeInsets.symmetric(vertical: 6),
-                                alignment: Alignment.center,
-                                child: Text(
-                                  'ပင်မပိုက်ဆံအိတ်',
-                                  style: TextStyle(
+                    if (bffIntegrationStatus)
+                      Container(
+                        decoration: BoxDecoration(
+                          border:
+                              Border.all(color: AppResources.colors.blue600),
+                          borderRadius: BorderRadius.circular(8),
+                        ),
+                        child: Row(
+                          children: [
+                            Expanded(
+                              child: GestureDetector(
+                                onTap: () => setState(() => _selectedTab = 0),
+                                child: Container(
+                                  decoration: BoxDecoration(
                                     color: _selectedTab == 0
-                                        ? Colors.white
-                                        : const Color(0xFF1846C7),
-                                    fontWeight: FontWeight.bold,
+                                        ? AppResources.colors.blue600
+                                        : Colors.transparent,
+                                    borderRadius: const BorderRadius.horizontal(
+                                        left: Radius.circular(8)),
+                                  ),
+                                  padding:
+                                      const EdgeInsets.symmetric(vertical: 6),
+                                  alignment: Alignment.center,
+                                  child: Text(
+                                    'ပင်မပိုက်ဆံအိတ်',
+                                    style: TextStyle(
+                                      color: _selectedTab == 0
+                                          ? Colors.white
+                                          : const Color(0xFF1846C7),
+                                      fontWeight: FontWeight.bold,
+                                    ),
                                   ),
                                 ),
                               ),
                             ),
-                          ),
-                          Expanded(
-                            child: GestureDetector(
-                              onTap: () => setState(() => _selectedTab = 1),
-                              child: Container(
-                                decoration: BoxDecoration(
-                                  color: _selectedTab == 1
-                                      ? const Color(0xFF1846C7)
-                                      : Colors.transparent,
-                                  borderRadius: const BorderRadius.horizontal(
-                                      right: Radius.circular(8)),
-                                ),
-                                padding:
-                                    const EdgeInsets.symmetric(vertical: 6),
-                                alignment: Alignment.center,
-                                child: Text(
-                                  'BFF Coins',
-                                  style: TextStyle(
+                            Expanded(
+                              child: GestureDetector(
+                                onTap: () => setState(() => _selectedTab = 1),
+                                child: Container(
+                                  decoration: BoxDecoration(
                                     color: _selectedTab == 1
-                                        ? Colors.white
-                                        : const Color(0xFF1846C7),
-                                    fontWeight: FontWeight.bold,
+                                        ? const Color(0xFF1846C7)
+                                        : Colors.transparent,
+                                    borderRadius: const BorderRadius.horizontal(
+                                        right: Radius.circular(8)),
+                                  ),
+                                  padding:
+                                      const EdgeInsets.symmetric(vertical: 6),
+                                  alignment: Alignment.center,
+                                  child: Text(
+                                    'BFF Coins',
+                                    style: TextStyle(
+                                      color: _selectedTab == 1
+                                          ? Colors.white
+                                          : const Color(0xFF1846C7),
+                                      fontWeight: FontWeight.bold,
+                                    ),
                                   ),
                                 ),
                               ),
                             ),
-                          ),
-                        ],
+                          ],
+                        ),
                       ),
-                    ),
                     const Gap(15),
                     // Balance
-                    _selectedTab == 0
-                        ? _remainingBalanceTagWidget(balance, bffCoin)
-                        : _bffBalanceTagWidget(balance, bffCoin),
+                    SizedBox(
+                      width: double.infinity,
+                      child: _selectedTab == 0
+                          ? _remainingBalanceTagWidget(balance, bffCoin)
+                          : _bffBalanceTagWidget(balance, bffCoin),
+                    ),
                     const Gap(8),
                   ],
                 ),

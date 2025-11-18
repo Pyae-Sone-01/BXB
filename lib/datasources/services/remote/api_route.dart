@@ -15,6 +15,7 @@ class ApiRoute {
 class _Misc {
   final String notification = "/notifications/list";
   final String checkForUpdate = "/misc/check-force-update";
+  final String bffIntegrationStatus = "/misc/bff-integration-status";
 }
 
 class _Authentication {
